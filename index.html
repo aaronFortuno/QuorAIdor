@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QourAIdor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div id="header-controls">
+                <div id="lang-selector">
+                    <button class="lang-btn" data-lang="ca">CA</button>
+                    <button class="lang-btn" data-lang="es">ES</button>
+                    <button class="lang-btn" data-lang="en">EN</button>
+                </div>
+                <button id="theme-toggle" aria-label="Toggle theme">
+                    <span id="theme-icon">☀️</span>
+                </button>
+            </div>
+            <h1>QourAIdor</h1>
+            <p class="subtitle" data-i18n="subtitle">Quoridor contra IA</p>
+        </header>
+
+        <div id="menu-screen" class="screen active">
+            <h2 data-i18n="newGame">Nova Partida</h2>
+            <div class="option-group">
+                <label data-i18n="playAs">Juga com a:</label>
+                <div class="toggle-group">
+                    <button class="toggle-btn selected" data-color="1" data-i18n="player1Top">Jugador 1 (Dalt)</button>
+                    <button class="toggle-btn" data-color="2" data-i18n="player2Bottom">Jugador 2 (Baix)</button>
+                </div>
+            </div>
+            <div class="option-group">
+                <label data-i18n="aiDifficulty">Dificultat IA:</label>
+                <div class="toggle-group">
+                    <button class="toggle-btn" data-depth="1" data-i18n="easy">Fàcil</button>
+                    <button class="toggle-btn selected" data-depth="2" data-i18n="medium">Mitjà</button>
+                    <button class="toggle-btn" data-depth="3" data-i18n="hard">Difícil</button>
+                </div>
+            </div>
+            <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div id="game-layout">
+                <div id="left-panel">
+                    <div id="eval-detail"></div>
+                    <div id="info-section">
+                        <div class="player-info" id="p1-info">
+                            <span class="player-dot p1-dot"></span>
+                            <span class="player-label">Jugador 1</span>
+                            <span class="wall-count" id="p1-walls">10 murs</span>
+                        </div>
+                        <div class="player-info" id="p2-info">
+                            <span class="player-dot p2-dot"></span>
+                            <span class="player-label">Jugador 2 (IA)</span>
+                            <span class="wall-count" id="p2-walls">10 murs</span>
+                        </div>
+                        <div id="turn-indicator" data-i18n="yourTurn">El teu torn</div>
+                        <div id="action-mode">
+                            <button class="mode-btn selected" data-mode="move" data-i18n="move">Moure</button>
+                            <button class="mode-btn" data-mode="wall-h" data-i18n="wallH">Mur ─</button>
+                            <button class="mode-btn" data-mode="wall-v" data-i18n="wallV">Mur │</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="eval-bar-vertical">
+                    <div id="eval-score">0.0</div>
+                    <div id="eval-bar">
+                        <div id="eval-fill-p2"></div>
+                        <div id="eval-fill-p1"></div>
+                    </div>
+                </div>
+
+                <div id="board-area">
+                    <canvas id="board-canvas"></canvas>
+                </div>
+
+                <div id="right-panel">
+                    <div class="panel-title" data-i18n="moveHistory">Historial de Moviments</div>
+                    <div id="move-list"></div>
+                    <div id="analysis-info">
+                        <div class="panel-title" data-i18n="analysis">Anàlisi</div>
+                        <div id="analysis-content">
+                            <div id="best-move-hint"></div>
+                            <div id="position-summary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="game-buttons">
+                <button id="undo-btn" class="secondary-btn" data-i18n="undo">Desfer</button>
+                <button id="new-game-btn" class="secondary-btn" data-i18n="newGame">Nova Partida</button>
+                <button id="back-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>
+            </div>
+        </div>
+
+        <div id="game-over-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="game-over-title"></h2>
+                <p id="game-over-msg"></p>
+                <div id="game-over-stats"></div>
+                <button id="rematch-btn" class="primary-btn" data-i18n="rematch">Revenja</button>
+                <button id="modal-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="game.js"></script>
+    <script src="ai.js"></script>
+    <script src="ui.js"></script>
+</body>
+</html>

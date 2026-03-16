@@ -85,10 +85,11 @@ const QuoridorAI = (() => {
      *  0 = opening, 1 = midgame, 2 = endgame
      * =================================================================== */
 
-    function getGamePhase(state) {
+    function getGamePhase(state, dist0, dist1) {
         const wallsUsed = (10 - state.players[0].walls) + (10 - state.players[1].walls);
-        const d0 = QuoridorGame.bfsShortestPath(state, 0);
-        const d1 = QuoridorGame.bfsShortestPath(state, 1);
+        // Use pre-computed distances if available, else compute
+        const d0 = dist0 !== undefined ? dist0 : QuoridorGame.bfsShortestPath(state, 0);
+        const d1 = dist1 !== undefined ? dist1 : QuoridorGame.bfsShortestPath(state, 1);
         const minDist = Math.min(d0, d1);
 
         if (minDist <= 3 || wallsUsed >= 14) return 2;  // endgame
@@ -166,8 +167,8 @@ const QuoridorAI = (() => {
         if (dist0 === 0) return 1000;
         if (dist1 === 0) return -1000;
 
-        // Phase multipliers
-        const phase = getGamePhase(state);
+        // Phase multipliers — pass pre-computed distances to avoid redundant BFS
+        const phase = getGamePhase(state, dist0, dist1);
         let pMul, wMul;
         if (phase === 0)      { pMul = w.openingPathMul; wMul = w.openingWallMul; }
         else if (phase === 1) { pMul = w.midgamePathMul; wMul = w.midgameWallMul; }
@@ -255,7 +256,7 @@ const QuoridorAI = (() => {
             distP2: dist1,
             wallsP1: state.players[0].walls,
             wallsP2: state.players[1].walls,
-            phase: getGamePhase(state),
+            phase: getGamePhase(state, dist0, dist1),
             nodesSearched,
             advantage: eval_ > 1.5 ? 'P1' : eval_ < -1.5 ? 'P2' : 'Even'
         };
@@ -288,30 +289,34 @@ const QuoridorAI = (() => {
         const oppDivBefore = (w.wallSynergy) ? countShortestPathDiversity(state, oppIdx) : 0;
         const wallActions = [];
 
+        // P4: Use incremental edge mutation instead of full applyMove for wall scoring
+        const edges = state.edges;
         for (const ori of ['h', 'v']) {
             const placements = QuoridorGame.getValidWallPlacements(state, ori);
             for (const place of placements) {
-                const testState = QuoridorGame.applyMove(state,
-                    { type: 'wall', row: place.row, col: place.col, orientation: ori });
+                // Temporarily add wall edges (no state clone needed)
+                QuoridorGame.addWallEdges(edges, place.row, place.col, ori);
 
-                const newOppDist = QuoridorGame.bfsWithJumps(testState, oppIdx);
-                const newOwnDist = QuoridorGame.bfsWithJumps(testState, cp);
+                const newOppDist = QuoridorGame.bfsWithJumps(state, oppIdx);
+                const newOwnDist = QuoridorGame.bfsWithJumps(state, cp);
 
-                const offensiveGain = newOppDist - oppDist;          // + = good
-                const defensiveCost = newOwnDist - ownDist;          // + = bad
+                const offensiveGain = newOppDist - oppDist;
+                const defensiveCost = newOwnDist - ownDist;
 
                 let netImpact = offensiveGain * w.wallOffensiveW
                               - defensiveCost * w.wallDefensiveW;
 
-                // Wall synergy: bonus for walls that reduce opponent's path diversity
-                // (creating narrow corridors vulnerable to follow-up walls)
+                // Wall synergy
                 if (w.wallSynergy && offensiveGain >= 0) {
-                    const oppDivAfter = countShortestPathDiversity(testState, oppIdx);
+                    const oppDivAfter = countShortestPathDiversity(state, oppIdx);
                     const diversityDrop = oppDivBefore - oppDivAfter;
                     if (diversityDrop > 0) {
                         netImpact += diversityDrop * w.wallSynergy;
                     }
                 }
+
+                // Remove temporary edges
+                QuoridorGame.removeWallEdges(edges, place.row, place.col, ori);
 
                 if (netImpact >= w.wallMinNetImpact) {
                     wallActions.push({

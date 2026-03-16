@@ -207,76 +207,88 @@ const QuoridorGame = (() => {
     }
 
     /* ==================================================================
-     *  BFS PATHFINDING  (O(1) dequeue via index pointer)
+     *  BFS PATHFINDING — Optimized with pre-allocated flat buffers
+     *  Uses integer encoding: pos = row * SIZE + col
+     *  P1+P2: Pre-allocated Uint8Array for visited, Int16Array for queue
      * ================================================================== */
 
-    function bfsShortestPath(state, playerIdx) {
+    const _CELLS = SIZE * SIZE;             // 81
+    const _bfsVisited = new Uint8Array(_CELLS);
+    const _bfsQueue = new Int16Array(_CELLS); // positions (row*9+col)
+    const _bfsDist = new Int16Array(_CELLS);  // distance for each queued pos
+
+    /**
+     * Unified BFS — finds shortest path distance to goalRow.
+     * @param {Object} state - game state
+     * @param {number} playerIdx - 0 or 1
+     * @param {boolean} withJumps - if true, consider opponent jumps
+     * @returns {number} shortest distance, or Infinity
+     */
+    function bfs(state, playerIdx, withJumps) {
         const p = state.players[playerIdx];
         const goalRow = p.goalRow;
-        const visited = Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
-        const queue = [{ row: p.row, col: p.col, dist: 0 }];
-        let head = 0;
-        visited[p.row][p.col] = true;
-        const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
         const edges = state.edges;
+        const oppRow = withJumps ? state.players[1 - playerIdx].row : -1;
+        const oppCol = withJumps ? state.players[1 - playerIdx].col : -1;
 
-        while (head < queue.length) {
-            const { row, col, dist } = queue[head++];
+        // Reset visited
+        _bfsVisited.fill(0);
+
+        const startPos = p.row * SIZE + p.col;
+        _bfsVisited[startPos] = 1;
+        _bfsQueue[0] = startPos;
+        _bfsDist[0] = 0;
+        let head = 0, tail = 1;
+
+        // Direction offsets: [dRow, dCol]
+        const DR = [-1, 1, 0, 0];
+        const DC = [0, 0, -1, 1];
+
+        while (head < tail) {
+            const pos = _bfsQueue[head];
+            const dist = _bfsDist[head];
+            head++;
+            const row = (pos / SIZE) | 0;
+            const col = pos % SIZE;
+
             if (row === goalRow) return dist;
 
-            for (const [dr, dc] of dirs) {
-                const nr = row + dr;
-                const nc = col + dc;
-                if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) continue;
-                if (visited[nr][nc]) continue;
-                if (edgeBlocked(edges, row, col, nr, nc)) continue;
-                visited[nr][nc] = true;
-                queue.push({ row: nr, col: nc, dist: dist + 1 });
-            }
-        }
-        return Infinity;
-    }
-
-    function bfsWithJumps(state, playerIdx) {
-        const p = state.players[playerIdx];
-        const opp = state.players[1 - playerIdx];
-        const goalRow = p.goalRow;
-        const visited = Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
-        const queue = [{ row: p.row, col: p.col, dist: 0 }];
-        let head = 0;
-        visited[p.row][p.col] = true;
-        const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-        const edges = state.edges;
-
-        while (head < queue.length) {
-            const { row, col, dist } = queue[head++];
-            if (row === goalRow) return dist;
-
-            for (const [dr, dc] of dirs) {
-                const nr = row + dr;
-                const nc = col + dc;
+            for (let d = 0; d < 4; d++) {
+                const nr = row + DR[d];
+                const nc = col + DC[d];
                 if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) continue;
                 if (edgeBlocked(edges, row, col, nr, nc)) continue;
 
-                if (nr === opp.row && nc === opp.col) {
-                    const jr = nr + dr;
-                    const jc = nc + dc;
+                if (withJumps && nr === oppRow && nc === oppCol) {
+                    // Jump over opponent
+                    const jr = nr + DR[d];
+                    const jc = nc + DC[d];
                     if (jr >= 0 && jr < SIZE && jc >= 0 && jc < SIZE &&
                         !edgeBlocked(edges, nr, nc, jr, jc)) {
-                        if (!visited[jr][jc]) {
-                            visited[jr][jc] = true;
-                            queue.push({ row: jr, col: jc, dist: dist + 1 });
+                        const jpos = jr * SIZE + jc;
+                        if (!_bfsVisited[jpos]) {
+                            _bfsVisited[jpos] = 1;
+                            _bfsQueue[tail] = jpos;
+                            _bfsDist[tail] = dist + 1;
+                            tail++;
                         }
                     } else {
-                        const sideDirs = (dr === 0) ? [[-1, 0], [1, 0]] : [[0, -1], [0, 1]];
-                        for (const [sdr, sdc] of sideDirs) {
-                            const sr = nr + sdr;
-                            const sc = nc + sdc;
+                        // Side jumps
+                        const sd1r = DR[d] === 0 ? -1 : 0;
+                        const sd1c = DC[d] === 0 ? -1 : 0;
+                        const sd2r = DR[d] === 0 ? 1 : 0;
+                        const sd2c = DC[d] === 0 ? 1 : 0;
+                        for (let s = 0; s < 2; s++) {
+                            const sr = nr + (s === 0 ? sd1r : sd2r);
+                            const sc = nc + (s === 0 ? sd1c : sd2c);
                             if (sr >= 0 && sr < SIZE && sc >= 0 && sc < SIZE &&
                                 !edgeBlocked(edges, nr, nc, sr, sc)) {
-                                if (!visited[sr][sc]) {
-                                    visited[sr][sc] = true;
-                                    queue.push({ row: sr, col: sc, dist: dist + 1 });
+                                const spos = sr * SIZE + sc;
+                                if (!_bfsVisited[spos]) {
+                                    _bfsVisited[spos] = 1;
+                                    _bfsQueue[tail] = spos;
+                                    _bfsDist[tail] = dist + 1;
+                                    tail++;
                                 }
                             }
                         }
@@ -284,16 +296,27 @@ const QuoridorGame = (() => {
                     continue;
                 }
 
-                if (visited[nr][nc]) continue;
-                visited[nr][nc] = true;
-                queue.push({ row: nr, col: nc, dist: dist + 1 });
+                const npos = nr * SIZE + nc;
+                if (_bfsVisited[npos]) continue;
+                _bfsVisited[npos] = 1;
+                _bfsQueue[tail] = npos;
+                _bfsDist[tail] = dist + 1;
+                tail++;
             }
         }
         return Infinity;
     }
 
+    function bfsShortestPath(state, playerIdx) {
+        return bfs(state, playerIdx, false);
+    }
+
+    function bfsWithJumps(state, playerIdx) {
+        return bfs(state, playerIdx, true);
+    }
+
     function hasPath(state, playerIdx) {
-        return bfsShortestPath(state, playerIdx) < Infinity;
+        return bfs(state, playerIdx, false) < Infinity;
     }
 
     /* ==================================================================

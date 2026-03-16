@@ -387,12 +387,24 @@ const QuoridorAI = (() => {
      * =================================================================== */
 
     function getBestMove(state, customWeights) {
+        // Consult opening book first (not used in training with custom weights)
+        if (!customWeights && typeof QuoridorOpenings !== 'undefined') {
+            const bookMove = QuoridorOpenings.lookup(state);
+            if (bookMove) {
+                lastEvaluation = getAnalysis(state);
+                lastEvaluation.nodesSearched = 0;
+                lastEvaluation.fromBook = true;
+                return bookMove;
+            }
+        }
+
         nodesSearched = 0;
         const w = customWeights || activeWeights;
         const maximizing = state.currentPlayer === 0;
         const result = minimax(state, searchDepth, -Infinity, Infinity, maximizing, w);
         lastEvaluation = getAnalysis(state);
         lastEvaluation.nodesSearched = nodesSearched;
+        lastEvaluation.fromBook = false;
         return result.action;
     }
 

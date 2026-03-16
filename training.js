@@ -979,6 +979,14 @@
             try {
                 const data = JSON.parse(text);
                 if (data.population && Array.isArray(data.population)) {
+                    // J4: Show preview before importing
+                    const preview = 'Import population?\n\n' +
+                        'Genomes: ' + data.population.length + '\n' +
+                        'Generation: ' + (data.generation || 0) + '\n' +
+                        'Total games: ' + (data.totalGamesPlayed || 0) + '\n\n' +
+                        'This will replace the current population.';
+                    if (!confirm(preview)) return;
+
                     trainingState.population = data.population;
                     trainingState.fitnesses = data.fitnesses || [];
                     trainingState.fitnessHistory = data.fitnessHistory || [];
@@ -1033,7 +1041,7 @@
      * ================================================================== */
 
     function readConfig() {
-        return {
+        const config = {
             populationSize: parseInt($('cfg-pop-size').value),
             eliteCount: parseInt($('cfg-elite').value),
             tournamentSize: parseInt($('cfg-tournament').value),
@@ -1047,6 +1055,21 @@
             maxGenerations: parseInt($('cfg-max-gen').value),
             visualize: $('cfg-visualize').value
         };
+        return config;
+    }
+
+    function validateConfig(config) {
+        const errors = [];
+        if (config.populationSize < 4) errors.push('Population size must be at least 4');
+        if (config.eliteCount >= config.populationSize) errors.push('Elite count must be less than population size');
+        if (config.tournamentSize > config.populationSize) errors.push('Tournament size cannot exceed population size');
+        if (config.maxGenerations < 1) errors.push('Max generations must be at least 1');
+        if (config.gamesPerMatch < 1) errors.push('Games per matchup must be at least 1');
+        if (config.opponentsPerGenome < 1) errors.push('Opponents per genome must be at least 1');
+        if (config.maxMoves < 10) errors.push('Max moves must be at least 10');
+        if (config.mutationRate <= 0 || config.mutationRate > 1) errors.push('Mutation rate must be between 0 and 1');
+        if (config.crossoverRate < 0 || config.crossoverRate > 1) errors.push('Crossover rate must be between 0 and 1');
+        return errors;
     }
 
     function showScreen(id) {
@@ -1077,9 +1100,14 @@
     });
     $('speed-label').textContent = SPEED_LABELS[trainingState.speed];
 
-    // Start training
+    // Start training (with validation)
     $('btn-start-training').addEventListener('click', () => {
         const config = readConfig();
+        const errors = validateConfig(config);
+        if (errors.length > 0) {
+            alert('Configuration errors:\n\n' + errors.join('\n'));
+            return;
+        }
         showScreen('arena-screen');
         drawBoard($('arena-canvas'), QuoridorGame.createState());
         runTraining(config);
@@ -1107,12 +1135,18 @@
         updateStatus('Stopping...');
     });
 
-    // Back to config
+    // Back to config (with confirmation if running)
     $('btn-back-config').addEventListener('click', () => {
         if (trainingState.running) {
-            trainingState.stopRequested = true;
+            if (confirm('Stop training? Progress is saved automatically.')) {
+                trainingState.stopRequested = true;
+                showScreen('config-screen');
+                updateSavedStatus();
+            }
+        } else {
+            showScreen('config-screen');
+            updateSavedStatus();
         }
-        showScreen('config-screen');
     });
 
     // Export/import

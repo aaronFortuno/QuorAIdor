@@ -21,6 +21,14 @@
     const MAX_GAME_MOVES = 200;
     const positionCounts = new Map();
 
+    // B1: Last move tracking
+    let lastMove = null; // { from, to, type, player, wallGlowTurns }
+    // B2: Invalid move flash
+    let invalidFlash = null; // { row, col, startTime }
+    // B3: AI thinking spinner angle
+    let aiSpinnerAngle = 0;
+    let aiSpinnerRAF = null;
+
     const $ = id => document.getElementById(id);
 
     function positionKey(st) {
@@ -177,6 +185,7 @@
         state = QuoridorGame.createState();
         stateHistory = [QuoridorGame.cloneState(state)];
         positionCounts.clear();
+        lastMove = null;
         actionMode = 'move';
 
         const aiLabel = I18n.t('ai');
@@ -200,10 +209,13 @@
             // Yield to UI before computing
             await new Promise(r => setTimeout(r, 50));
 
+            const prevState = state;
+            const playerIdx = state.currentPlayer;
             const move = QuoridorAI.getBestMove(state);
             if (!move) break;
 
             state = QuoridorGame.applyMove(state, move);
+            recordLastMove(move, playerIdx, prevState);
             stateHistory.push(QuoridorGame.cloneState(state));
             updateUI();
             draw();
@@ -271,6 +283,7 @@
         state = QuoridorGame.createState();
         stateHistory = [QuoridorGame.cloneState(state)];
         positionCounts.clear();
+        lastMove = null;
         actionMode = 'move';
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
         document.querySelector('.mode-btn[data-mode="move"]').classList.add('selected');
@@ -377,6 +390,23 @@
         draw();
     });
 
+    function triggerInvalidFlash(row, col) {
+        invalidFlash = { row, col, startTime: performance.now() };
+        if (navigator.vibrate) navigator.vibrate(50);
+        // Animate the flash for 300ms
+        function animFlash() {
+            const elapsed = performance.now() - invalidFlash.startTime;
+            if (elapsed < 300) {
+                draw();
+                requestAnimationFrame(animFlash);
+            } else {
+                invalidFlash = null;
+                draw();
+            }
+        }
+        requestAnimationFrame(animFlash);
+    }
+
     function handleBoardInput(clientX, clientY) {
         if (aiThinking || !state || state.gameOver) return;
         if (state.currentPlayer !== humanPlayer) return;
@@ -392,6 +422,8 @@
             const isValid = validMoves.some(m => m.row === hit.row && m.col === hit.col);
             if (isValid) {
                 applyHumanMove({ type: 'move', row: hit.row, col: hit.col });
+            } else {
+                triggerInvalidFlash(hit.row, hit.col);
             }
         } else if (actionMode.startsWith('wall')) {
             const r = hit.row;
@@ -401,6 +433,8 @@
             const ori = actionMode === 'wall-h' ? 'h' : 'v';
             if (QuoridorGame.isValidWallPlacement(state, wRow, wCol, ori)) {
                 applyHumanMove({ type: 'wall', row: wRow, col: wCol, orientation: ori });
+            } else {
+                triggerInvalidFlash(wRow, wCol);
             }
         }
     }
@@ -445,8 +479,35 @@
         draw();
     }, { passive: false });
 
+    function recordLastMove(move, playerIdx, prevState) {
+        // Decrement glow turns on previous wall move
+        if (lastMove && lastMove.type === 'wall' && lastMove.wallGlowTurns > 0) {
+            lastMove.wallGlowTurns--;
+        }
+        if (move.type === 'move') {
+            lastMove = {
+                type: 'move',
+                from: { row: prevState.players[playerIdx].row, col: prevState.players[playerIdx].col },
+                to: { row: move.row, col: move.col },
+                player: playerIdx
+            };
+        } else {
+            lastMove = {
+                type: 'wall',
+                row: move.row,
+                col: move.col,
+                orientation: move.orientation,
+                player: playerIdx,
+                wallGlowTurns: 3
+            };
+        }
+    }
+
     function applyHumanMove(move) {
+        const prevState = state;
+        const playerIdx = state.currentPlayer;
         state = QuoridorGame.applyMove(state, move);
+        recordLastMove(move, playerIdx, prevState);
         stateHistory.push(QuoridorGame.cloneState(state));
         updateValidMoves();
         updateUI();
@@ -462,18 +523,39 @@
         }
     }
 
+    function startAISpinner() {
+        if (aiSpinnerRAF) return;
+        function spin() {
+            aiSpinnerAngle = (aiSpinnerAngle + 4) % 360;
+            draw();
+            if (aiThinking) aiSpinnerRAF = requestAnimationFrame(spin);
+        }
+        aiSpinnerRAF = requestAnimationFrame(spin);
+    }
+
+    function stopAISpinner() {
+        if (aiSpinnerRAF) {
+            cancelAnimationFrame(aiSpinnerRAF);
+            aiSpinnerRAF = null;
+        }
+    }
+
     function doAIMove() {
         aiThinking = true;
         $('turn-indicator').textContent = I18n.t('aiThinking');
-        draw();
+        startAISpinner();
 
         setTimeout(() => {
+            const prevState = state;
+            const playerIdx = state.currentPlayer;
             const move = QuoridorAI.getBestMove(state);
             if (move) {
                 state = QuoridorGame.applyMove(state, move);
+                recordLastMove(move, playerIdx, prevState);
                 stateHistory.push(QuoridorGame.cloneState(state));
             }
             aiThinking = false;
+            stopAISpinner();
             updateValidMoves();
             updateUI();
             draw();
@@ -597,6 +679,17 @@
             for (let c = 0; c < SIZE; c++) {
                 let color = COLORS.cell;
 
+                // B1: Highlight last move origin (semi-transparent)
+                if (lastMove && lastMove.type === 'move' &&
+                    lastMove.from.row === r && lastMove.from.col === c) {
+                    color = lastMove.player === 0 ? 'rgba(79, 195, 247, 0.15)' : 'rgba(233, 69, 96, 0.15)';
+                }
+                // B1: Highlight last move destination
+                if (lastMove && lastMove.type === 'move' &&
+                    lastMove.to.row === r && lastMove.to.col === c) {
+                    color = lastMove.player === 0 ? 'rgba(79, 195, 247, 0.3)' : 'rgba(233, 69, 96, 0.3)';
+                }
+
                 if (actionMode === 'move' && state && !state.gameOver &&
                     state.currentPlayer === humanPlayer) {
                     if (validMoves.some(m => m.row === r && m.col === c)) {
@@ -611,14 +704,43 @@
 
                 ctx.fillStyle = color;
                 ctx.fillRect(cellX(c), cellY(r), CELL, CELL);
+
+                // B1: Draw border on last move destination cell
+                if (lastMove && lastMove.type === 'move' &&
+                    lastMove.to.row === r && lastMove.to.col === c) {
+                    ctx.strokeStyle = lastMove.player === 0 ? COLORS.p1 : COLORS.p2;
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(cellX(c) + 1, cellY(r) + 1, CELL - 2, CELL - 2);
+                }
             }
+        }
+
+        // B2: Invalid move flash overlay
+        if (invalidFlash) {
+            const elapsed = performance.now() - invalidFlash.startTime;
+            const alpha = Math.max(0, 0.4 * (1 - elapsed / 300));
+            ctx.fillStyle = 'rgba(255, 0, 0, ' + alpha + ')';
+            ctx.fillRect(cellX(invalidFlash.col), cellY(invalidFlash.row), CELL, CELL);
         }
 
         drawCoordinates(ctx, COLORS);
 
         if (state) {
             for (const w of state.walls) {
-                _drawWall(ctx, w.row, w.col, w.orientation, COLORS.wallPlaced, 4);
+                // B1: Glow on last placed wall
+                let wallColor = COLORS.wallPlaced;
+                let wallWidth = 4;
+                if (lastMove && lastMove.type === 'wall' && lastMove.wallGlowTurns > 0 &&
+                    lastMove.row === w.row && lastMove.col === w.col &&
+                    lastMove.orientation === w.orientation) {
+                    wallColor = lastMove.player === 0 ? COLORS.p1 : COLORS.p2;
+                    wallWidth = 6;
+                    ctx.shadowColor = wallColor;
+                    ctx.shadowBlur = 8;
+                }
+                _drawWall(ctx, w.row, w.col, w.orientation, wallColor, wallWidth);
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
             }
         }
 
@@ -642,13 +764,33 @@
             drawGoalIndicators(ctx, COLORS);
         }
 
+        // B3: Improved AI thinking indicator with spinner
         if (aiThinking) {
-            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.fillStyle = 'rgba(0,0,0,0.35)';
             ctx.fillRect(0, 0, BOARD_PX, BOARD_PX);
-            ctx.fillStyle = '#e94560';
-            ctx.font = 'bold 20px sans-serif';
+
+            const cx = BOARD_PX / 2;
+            const cy = BOARD_PX / 2 - 10;
+            const radius = 18;
+
+            // Spinner arc
+            ctx.save();
+            ctx.strokeStyle = '#e94560';
+            ctx.lineWidth = 3;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            const startAngle = (aiSpinnerAngle * Math.PI / 180);
+            ctx.arc(cx, cy, radius, startAngle, startAngle + Math.PI * 1.4);
+            ctx.stroke();
+            ctx.restore();
+
+            // Text below spinner
+            ctx.fillStyle = '#eee';
+            ctx.font = 'bold 14px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(I18n.t('aiThinking'), BOARD_PX / 2, BOARD_PX / 2);
+            ctx.textBaseline = 'top';
+            ctx.fillText(I18n.t('aiThinking'), cx, cy + radius + 10);
+            ctx.textBaseline = 'alphabetic';
         }
     }
 

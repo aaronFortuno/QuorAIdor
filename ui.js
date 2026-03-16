@@ -938,6 +938,13 @@
     }
 
     function applyHumanMove(move) {
+        // Online mode: send to server instead of applying locally
+        if (onlineMode) {
+            if (state.currentPlayer !== onlinePlayerIndex) return;
+            Multiplayer.sendMove(move);
+            return;
+        }
+
         const prevState = state;
         const playerIdx = state.currentPlayer;
         state = QuoridorGame.applyMove(state, move);
@@ -1053,12 +1060,14 @@
                 $('turn-indicator').textContent = state.currentPlayer === 0 ? I18n.t('turnP1') : I18n.t('turnP2');
             } else if (state.currentPlayer === humanPlayer) {
                 $('turn-indicator').textContent = I18n.t('yourTurn');
+            } else if (onlineMode) {
+                $('turn-indicator').textContent = I18n.t('opponentTurn');
             } else {
                 $('turn-indicator').textContent = I18n.t('aiTurn');
             }
         }
 
-        if (!hvhMode && !aiVsAiMode) {
+        if (!hvhMode && !aiVsAiMode && !onlineMode) {
             const p1Label = humanPlayer === 0 ? I18n.t('you') : I18n.t('ai');
             const p2Label = humanPlayer === 1 ? I18n.t('you') : I18n.t('ai');
             $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + p1Label + ')';
@@ -1405,6 +1414,259 @@
     window.addEventListener('resize', () => {
         initMobileTabs();
     });
+
+    // =====================================================================
+    //  MULTIPLAYER INTEGRATION
+    // =====================================================================
+
+    let onlineMode = false;
+    let onlinePlayerIndex = -1;
+
+    // Navigate to lobby
+    $('btn-online').addEventListener('click', () => {
+        const savedName = localStorage.getItem('qouraid-player-name') || '';
+        $('player-name-input').value = savedName;
+        $('waiting-room').classList.add('hidden');
+        showScreen('lobby-screen');
+        Multiplayer.connect();
+        updateConnectionStatus();
+    });
+
+    $('btn-lobby-back').addEventListener('click', () => {
+        Multiplayer.leaveRoom();
+        showScreen('menu-screen');
+    });
+
+    function updateConnectionStatus() {
+        const el = $('connection-status');
+        if (Multiplayer.connected) {
+            el.textContent = I18n.t('connected');
+            el.className = 'lobby-status connected';
+        } else {
+            el.textContent = I18n.t('connecting');
+            el.className = 'lobby-status disconnected';
+        }
+    }
+
+    // Create room
+    $('btn-create-room').addEventListener('click', () => {
+        const name = $('player-name-input').value.trim() || 'Guest';
+        Multiplayer.createRoom(name);
+    });
+
+    // Join room
+    $('btn-join-room').addEventListener('click', () => {
+        const code = $('room-code-input').value.trim().toUpperCase();
+        if (!code || code.length < 4) return;
+        const name = $('player-name-input').value.trim() || 'Guest';
+        Multiplayer.joinRoom(code, name);
+    });
+
+    $('room-code-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') $('btn-join-room').click();
+    });
+
+    // Cancel waiting
+    $('btn-cancel-room').addEventListener('click', () => {
+        Multiplayer.leaveRoom();
+        $('waiting-room').classList.add('hidden');
+    });
+
+    // Copy room code
+    $('btn-copy-code').addEventListener('click', () => {
+        const code = $('display-room-code').textContent;
+        navigator.clipboard.writeText(code).catch(() => {});
+        $('btn-copy-code').textContent = '✓';
+        setTimeout(() => { $('btn-copy-code').textContent = I18n.t('copyCode'); }, 2000);
+    });
+
+    // Chat
+    $('btn-send-chat').addEventListener('click', sendChatMessage);
+    $('chat-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') sendChatMessage();
+    });
+
+    function sendChatMessage() {
+        const input = $('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        Multiplayer.sendChat(text);
+        input.value = '';
+    }
+
+    function addChatMessage(from, text, isSystem) {
+        const el = $('chat-messages');
+        const div = document.createElement('div');
+        div.className = 'chat-msg' + (isSystem ? ' chat-msg-system' : '');
+        if (isSystem) {
+            div.textContent = text;
+        } else {
+            div.innerHTML = '<span class="chat-msg-name">' + from + ':</span> ' + text;
+        }
+        el.appendChild(div);
+        el.scrollTop = el.scrollHeight;
+    }
+
+    // Multiplayer event handlers
+    Multiplayer.on('connect', () => {
+        updateConnectionStatus();
+    });
+
+    Multiplayer.on('disconnect', () => {
+        updateConnectionStatus();
+    });
+
+    Multiplayer.on('roomCreated', (roomCode) => {
+        $('display-room-code').textContent = roomCode;
+        $('waiting-room').classList.remove('hidden');
+    });
+
+    Multiplayer.on('roomJoined', (roomCode, playerIdx, opponentName) => {
+        startOnlineGame(playerIdx, opponentName);
+    });
+
+    Multiplayer.on('opponentJoined', (opponentName) => {
+        // We were waiting, opponent joined — start game
+        startOnlineGame(0, opponentName);
+    });
+
+    Multiplayer.on('stateSync', (serverState, lastMoveData, players) => {
+        if (!onlineMode) return;
+        // Rebuild full state from server data
+        const s = rebuildOnlineState(serverState);
+        state = s;
+        stateHistory.push(QuoridorGame.cloneState(state));
+        updateValidMoves();
+        updateUI();
+        draw();
+    });
+
+    Multiplayer.on('gameOver', (winner, winnerName, reason) => {
+        if (!state) return;
+        state.gameOver = true;
+        state.winner = winner;
+        const isDraw = winner === -1;
+        const isMyWin = winner === onlinePlayerIndex;
+
+        if (isDraw) {
+            $('game-over-title').textContent = I18n.t('draw');
+            $('game-over-msg').textContent = I18n.t('drawReason');
+        } else {
+            $('game-over-title').textContent = isMyWin ? I18n.t('youWin') : (winnerName + ' ' + I18n.t('aiWins'));
+            $('game-over-msg').textContent = isMyWin ? I18n.t('congratulations') : I18n.t('opponentReachedGoal');
+        }
+        $('game-over-stats').innerHTML =
+            I18n.t('movesPlayed') + ': ' + state.moveHistory.length;
+        openModal('game-over-modal');
+        addChatMessage(null, I18n.t('gameOver'), true);
+    });
+
+    Multiplayer.on('opponentLeft', (reason) => {
+        addChatMessage(null, I18n.t('opponentDisconnected'), true);
+        if (state && !state.gameOver) {
+            state.gameOver = true;
+            state.winner = onlinePlayerIndex;
+            $('game-over-title').textContent = I18n.t('youWin');
+            $('game-over-msg').textContent = I18n.t('opponentDisconnected');
+            $('game-over-stats').innerHTML = '';
+            openModal('game-over-modal');
+        }
+    });
+
+    Multiplayer.on('chat', (from, text) => {
+        addChatMessage(from, text, false);
+    });
+
+    Multiplayer.on('error', (message) => {
+        addChatMessage(null, 'Error: ' + message, true);
+    });
+
+    function startOnlineGame(myPlayerIndex, opponentName) {
+        $('waiting-room').classList.add('hidden');
+        onlineMode = true;
+        onlinePlayerIndex = myPlayerIndex;
+        humanPlayer = myPlayerIndex;
+        aiPlayer = -1;
+        hvhMode = false;
+        aiVsAiMode = false;
+        gameMode = 'online';
+
+        state = QuoridorGame.createState();
+        stateHistory = [QuoridorGame.cloneState(state)];
+        positionCounts.clear();
+        actionMode = 'move';
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelector('.mode-btn[data-mode="move"]').classList.add('selected');
+
+        const myName = Multiplayer.playerName;
+        const p1Name = myPlayerIndex === 0 ? myName : opponentName;
+        const p2Name = myPlayerIndex === 1 ? myName : opponentName;
+        $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + p1Name + ')';
+        $('p2-info').querySelector('.player-label').textContent = I18n.t('player2') + ' (' + p2Name + ')';
+
+        // Hide AI-only panels, show chat
+        $('analysis-info').style.display = 'none';
+        $('eval-bar-vertical').style.display = 'none';
+        $('chat-panel').classList.remove('hidden');
+        $('chat-messages').innerHTML = '';
+        addChatMessage(null, I18n.t('gameStarted'), true);
+
+        // Disable undo in online mode
+        $('undo-btn').style.display = 'none';
+
+        showScreen('game-screen');
+        updateValidMoves();
+        updateUI();
+        draw();
+    }
+
+    function rebuildOnlineState(serverState) {
+        // Server sends a minimal state; rebuild edges/wallSet
+        const s = {
+            players: serverState.players.map(p => ({ ...p })),
+            currentPlayer: serverState.currentPlayer,
+            walls: serverState.walls.map(w => ({ ...w })),
+            edges: QuoridorGame.buildEdgesFromWalls(serverState.walls),
+            wallSet: new Set(),
+            moveHistory: serverState.moveHistory || [],
+            gameOver: serverState.gameOver || false,
+            winner: serverState.winner != null ? serverState.winner : -1,
+            hash: 0
+        };
+        for (const w of s.walls) {
+            s.wallSet.add((w.row << 8) | (w.col << 4) | (w.orientation === 'h' ? 0 : 1));
+        }
+        return s;
+    }
+
+    // When leaving online game, clean up
+    function cleanupOnlineGame() {
+        if (onlineMode) {
+            Multiplayer.leaveRoom();
+            onlineMode = false;
+            onlinePlayerIndex = -1;
+            $('chat-panel').classList.add('hidden');
+            $('undo-btn').style.display = '';
+            $('analysis-info').style.display = '';
+            $('eval-bar-vertical').style.display = '';
+        }
+    }
+
+    // Patch back-menu-btn to clean up online
+    const backMenuBtn = $('back-menu-btn');
+    const originalBackMenuHandler = backMenuBtn.onclick;
+    backMenuBtn.addEventListener('click', () => {
+        cleanupOnlineGame();
+    });
+
+    // Patch modal-menu-btn too
+    $('modal-menu-btn').addEventListener('click', () => {
+        cleanupOnlineGame();
+    });
+
+    // =====================================================================
+    //  INIT
+    // =====================================================================
 
     initTheme();
     initLang();

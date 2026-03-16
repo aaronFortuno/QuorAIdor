@@ -60,9 +60,55 @@
             <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
             <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                 <button id="how-to-play-btn" class="secondary-btn" data-i18n="howToPlay">Com jugar</button>
+                <button id="btn-online" class="secondary-btn" data-i18n="onlineGame">Online</button>
                 <a href="training.html" class="secondary-btn" data-i18n="trainingArena" style="text-decoration:none; display:inline-block;">Training Arena</a>
             </div>
         </div>
+
+        <!-- MULTIPLAYER LOBBY -->
+        <div id="lobby-screen" class="screen">
+            <h2 data-i18n="onlineGame">Online Game</h2>
+            <div id="connection-status" class="lobby-status"></div>
+
+            <div class="option-group">
+                <label data-i18n="yourName">Your name:</label>
+                <input type="text" id="player-name-input" maxlength="20" placeholder="Guest" class="lobby-input">
+            </div>
+
+            <div class="lobby-actions">
+                <div class="lobby-card">
+                    <h3 data-i18n="createRoom">Create Room</h3>
+                    <p class="lobby-hint" data-i18n="createRoomHint">Create a room and share the code with a friend.</p>
+                    <button id="btn-create-room" class="primary-btn" data-i18n="createRoom">Create Room</button>
+                </div>
+                <div class="lobby-card">
+                    <h3 data-i18n="joinRoom">Join Room</h3>
+                    <p class="lobby-hint" data-i18n="joinRoomHint">Enter the 6-letter code to join an existing room.</p>
+                    <input type="text" id="room-code-input" maxlength="6" placeholder="ABC123" class="lobby-input code-input">
+                    <button id="btn-join-room" class="primary-btn" data-i18n="joinRoom">Join Room</button>
+                </div>
+            </div>
+
+            <!-- Waiting room (shown after creating) -->
+            <div id="waiting-room" class="hidden">
+                <div class="lobby-card waiting-card">
+                    <h3 data-i18n="waitingOpponent">Waiting for opponent...</h3>
+                    <div class="room-code-display">
+                        <span data-i18n="roomCode">Room code:</span>
+                        <strong id="display-room-code"></strong>
+                        <button id="btn-copy-code" class="secondary-btn small-btn" data-i18n="copyCode">Copy</button>
+                    </div>
+                    <div class="spinner-small"></div>
+                    <button id="btn-cancel-room" class="secondary-btn" data-i18n="cancel">Cancel</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 16px;">
+                <button id="btn-lobby-back" class="secondary-btn" data-i18n="menu">Menu</button>
+            </div>
+        </div>
+
+        <!-- ONLINE CHAT (inside game screen, shown only in online mode) -->
 
         <div id="game-screen" class="screen">
             <div id="game-layout">
@@ -113,6 +159,14 @@
                             <div id="position-summary"></div>
                         </div>
                     </div>
+                    <div id="chat-panel" class="hidden">
+                        <div class="panel-title">Chat</div>
+                        <div id="chat-messages"></div>
+                        <div class="chat-input-row">
+                            <input type="text" id="chat-input" maxlength="200" placeholder="...">
+                            <button id="btn-send-chat" class="secondary-btn small-btn">Send</button>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="game-buttons">
@@ -160,6 +214,7 @@
     <script src="openings.js"></script>
     <script src="ai.js"></script>
     <script src="renderer.js"></script>
+    <script src="multiplayer.js"></script>
     <script src="ui.js"></script>
 </body>
 </html>

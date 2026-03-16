@@ -1,33 +1,12 @@
 (() => {
-    const SIZE = QuoridorGame.SIZE;
-    const CELL = 50;
-    const GAP = 8;
-    const PAD = 20;
-    const BOARD_PX = SIZE * CELL + (SIZE - 1) * GAP + PAD * 2;
+    const { SIZE, CELL, GAP, PAD, BOARD_PX, cellX, cellY, getColors,
+            drawWall: _drawWall, drawPawn: _drawPawn,
+            drawCoordinates, drawGoalIndicators } = BoardRenderer;
 
     const canvas = document.getElementById('board-canvas');
     const ctx = canvas.getContext('2d');
     canvas.width = BOARD_PX;
     canvas.height = BOARD_PX;
-
-    function getColors() {
-        const style = getComputedStyle(document.documentElement);
-        return {
-            bg: style.getPropertyValue('--board-bg').trim() || '#0d1b36',
-            cell: style.getPropertyValue('--cell-bg').trim() || '#16213e',
-            cellHover: style.getPropertyValue('--btn-selected-bg').trim() || '#1e2a4a',
-            cellValid: 'rgba(79, 195, 247, 0.2)',
-            gridLine: style.getPropertyValue('--border').trim() || '#0f3460',
-            p1: '#4fc3f7',
-            p2: '#e94560',
-            wallPlaced: style.getPropertyValue('--text').trim() || '#e0e0e0',
-            wallPreview: 'rgba(233, 69, 96, 0.5)',
-            wallInvalid: 'rgba(255, 0, 0, 0.3)',
-            pathP1: 'rgba(79, 195, 247, 0.08)',
-            pathP2: 'rgba(233, 69, 96, 0.08)',
-            coord: style.getPropertyValue('--coord-color').trim() || '#444'
-        };
-    }
 
     let state = null;
     let humanPlayer = 0;
@@ -38,18 +17,46 @@
     let validMoves = [];
     let stateHistory = [];
     let aiThinking = false;
+    let showPaths = false;
+    const MAX_GAME_MOVES = 200;
+    const positionCounts = new Map();
 
     const $ = id => document.getElementById(id);
 
-    function initTheme() {
-        const saved = localStorage.getItem('qouraid-theme') || 'dark';
-        if (saved === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-            $('theme-icon').textContent = '\uD83C\uDF19';
-        } else {
-            document.documentElement.removeAttribute('data-theme');
-            $('theme-icon').textContent = '\u2600\uFE0F';
+    function positionKey(st) {
+        // Compact position identifier for repetition detection
+        return st.players[0].row + ',' + st.players[0].col + ',' +
+               st.players[1].row + ',' + st.players[1].col + ',' +
+               st.currentPlayer + ',' +
+               st.walls.map(w => w.row + '' + w.col + w.orientation).sort().join(';');
+    }
+
+    function checkDrawConditions() {
+        if (!state || state.gameOver) return false;
+
+        // Max moves reached
+        if (state.moveHistory.length >= MAX_GAME_MOVES) {
+            state.gameOver = true;
+            state.winner = -1;
+            return true;
         }
+
+        // Threefold repetition
+        const key = positionKey(state);
+        const count = (positionCounts.get(key) || 0) + 1;
+        positionCounts.set(key, count);
+        if (count >= 3) {
+            state.gameOver = true;
+            state.winner = -1;
+            return true;
+        }
+
+        return false;
+    }
+
+    function initTheme() {
+        const saved = BoardRenderer.initTheme();
+        $('theme-icon').textContent = saved === 'light' ? '\uD83C\uDF19' : '\u2600\uFE0F';
     }
 
     function initLang() {
@@ -61,16 +68,8 @@
     }
 
     $('theme-toggle').addEventListener('click', () => {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        if (isLight) {
-            document.documentElement.removeAttribute('data-theme');
-            localStorage.setItem('qouraid-theme', 'dark');
-            $('theme-icon').textContent = '\u2600\uFE0F';
-        } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-            localStorage.setItem('qouraid-theme', 'light');
-            $('theme-icon').textContent = '\uD83C\uDF19';
-        }
+        const isNowLight = BoardRenderer.toggleTheme();
+        $('theme-icon').textContent = isNowLight ? '\uD83C\uDF19' : '\u2600\uFE0F';
         draw();
     });
 
@@ -114,7 +113,11 @@
 
     $('start-btn').addEventListener('click', startNewGame);
     $('new-game-btn').addEventListener('click', startNewGame);
-    $('back-menu-btn').addEventListener('click', () => showScreen('menu-screen'));
+    $('back-menu-btn').addEventListener('click', () => {
+        aiVsAiRunning = false;
+        aiVsAiMode = false;
+        showScreen('menu-screen');
+    });
     $('rematch-btn').addEventListener('click', startNewGame);
     $('modal-menu-btn').addEventListener('click', () => {
         $('game-over-modal').classList.add('hidden');
@@ -122,7 +125,7 @@
     });
 
     $('undo-btn').addEventListener('click', () => {
-        if (stateHistory.length >= 2 && !aiThinking) {
+        if (stateHistory.length >= 2 && !aiThinking && !aiVsAiMode) {
             stateHistory.pop();
             stateHistory.pop();
             state = QuoridorGame.cloneState(stateHistory[stateHistory.length - 1]);
@@ -133,17 +136,109 @@
         }
     });
 
+    // Toggle shortest path display
+    $('paths-btn').addEventListener('click', () => {
+        showPaths = !showPaths;
+        $('paths-btn').classList.toggle('selected', showPaths);
+        draw();
+    });
+
+    // AI vs AI mode
+    let aiVsAiMode = false;
+    let aiVsAiRunning = false;
+
+    $('watch-ai-btn').addEventListener('click', startAIvsAI);
+
+    function startAIvsAI() {
+        $('game-over-modal').classList.add('hidden');
+
+        const depthBtn = document.querySelector('[data-depth].selected');
+        const depth = parseInt(depthBtn.dataset.depth);
+        QuoridorAI.setDepth(depth);
+
+        if (depth >= 3 && QuoridorAI.hasTrainedWeights()) {
+            QuoridorAI.loadTrainedWeights();
+        } else {
+            QuoridorAI.resetWeights();
+        }
+
+        aiVsAiMode = true;
+        humanPlayer = -1; // no human player
+        aiPlayer = -1;
+
+        state = QuoridorGame.createState();
+        stateHistory = [QuoridorGame.cloneState(state)];
+        positionCounts.clear();
+        actionMode = 'move';
+
+        const aiLabel = I18n.t('ai');
+        $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + aiLabel + ')';
+        $('p2-info').querySelector('.player-label').textContent = I18n.t('player2') + ' (' + aiLabel + ')';
+
+        showScreen('game-screen');
+        updateValidMoves();
+        updateUI();
+        draw();
+
+        runAIvsAILoop();
+    }
+
+    async function runAIvsAILoop() {
+        aiVsAiRunning = true;
+        while (!state.gameOver && aiVsAiRunning) {
+            $('turn-indicator').textContent = I18n.t('aiThinking');
+            draw();
+
+            // Yield to UI before computing
+            await new Promise(r => setTimeout(r, 50));
+
+            const move = QuoridorAI.getBestMove(state);
+            if (!move) break;
+
+            state = QuoridorGame.applyMove(state, move);
+            stateHistory.push(QuoridorGame.cloneState(state));
+            updateUI();
+            draw();
+
+            if (state.gameOver || checkDrawConditions()) {
+                showGameOver();
+                break;
+            }
+
+            // Small delay between moves so user can follow
+            await new Promise(r => setTimeout(r, 200));
+        }
+        aiVsAiRunning = false;
+        aiVsAiMode = false;
+    }
+
+    let usingTrainedWeights = false;
+
     function startNewGame() {
+        // Stop any running AI vs AI game
+        aiVsAiRunning = false;
+        aiVsAiMode = false;
+
         $('game-over-modal').classList.add('hidden');
         const colorBtn = document.querySelector('[data-color].selected');
         humanPlayer = parseInt(colorBtn.dataset.color) - 1;
         aiPlayer = 1 - humanPlayer;
 
         const depthBtn = document.querySelector('[data-depth].selected');
-        QuoridorAI.setDepth(parseInt(depthBtn.dataset.depth));
+        const depth = parseInt(depthBtn.dataset.depth);
+        QuoridorAI.setDepth(depth);
+
+        // For Hard (3) and Expert (4): use trained weights if available
+        usingTrainedWeights = false;
+        if (depth >= 3 && QuoridorAI.hasTrainedWeights()) {
+            usingTrainedWeights = QuoridorAI.loadTrainedWeights();
+        } else {
+            QuoridorAI.resetWeights();
+        }
 
         state = QuoridorGame.createState();
         stateHistory = [QuoridorGame.cloneState(state)];
+        positionCounts.clear();
         actionMode = 'move';
         document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
         document.querySelector('.mode-btn[data-mode="move"]').classList.add('selected');
@@ -153,6 +248,9 @@
         $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + p1Label + ')';
         $('p2-info').querySelector('.player-label').textContent = I18n.t('player2') + ' (' + p2Label + ')';
 
+        // Show trained badge if using trained weights
+        updateTrainedBadge();
+
         showScreen('game-screen');
         updateValidMoves();
         updateUI();
@@ -160,6 +258,23 @@
 
         if (state.currentPlayer === aiPlayer) {
             doAIMove();
+        }
+    }
+
+    function updateTrainedBadge() {
+        let badge = $('trained-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'trained-badge';
+            badge.className = 'trained-badge';
+            const turnIndicator = $('turn-indicator');
+            turnIndicator.parentNode.insertBefore(badge, turnIndicator);
+        }
+        if (usingTrainedWeights) {
+            badge.textContent = I18n.t('trainedAI');
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
         }
     }
 
@@ -230,13 +345,13 @@
         draw();
     });
 
-    canvas.addEventListener('click', (e) => {
+    function handleBoardInput(clientX, clientY) {
         if (aiThinking || !state || state.gameOver) return;
         if (state.currentPlayer !== humanPlayer) return;
 
         const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        const x = (clientX - rect.left) * (canvas.width / rect.width);
+        const y = (clientY - rect.top) * (canvas.height / rect.height);
 
         const hit = cellFromPixel(x, y);
         if (!hit) return;
@@ -256,7 +371,47 @@
                 applyHumanMove({ type: 'wall', row: wRow, col: wCol, orientation: ori });
             }
         }
+    }
+
+    canvas.addEventListener('click', (e) => {
+        handleBoardInput(e.clientX, e.clientY);
     });
+
+    // Touch support for mobile
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        // Update hover for visual feedback
+        const rect = canvas.getBoundingClientRect();
+        const x = (touch.clientX - rect.left) * (canvas.width / rect.width);
+        const y = (touch.clientY - rect.top) * (canvas.height / rect.height);
+        const hit = cellFromPixel(x, y);
+        hoverCell = null;
+        hoverWall = null;
+        if (hit) {
+            if (hit.type === 'cell' && actionMode === 'move') {
+                hoverCell = hit;
+            } else if (hit.type === 'wall-slot' || hit.type === 'cell') {
+                if (actionMode.startsWith('wall')) {
+                    const wRow = Math.min(hit.row, SIZE - 2);
+                    const wCol = Math.min(hit.col, SIZE - 2);
+                    hoverWall = { row: wRow, col: wCol, orientation: actionMode === 'wall-h' ? 'h' : 'v' };
+                }
+            }
+        }
+        draw();
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (e.changedTouches.length > 0) {
+            const touch = e.changedTouches[0];
+            handleBoardInput(touch.clientX, touch.clientY);
+        }
+        hoverCell = null;
+        hoverWall = null;
+        draw();
+    }, { passive: false });
 
     function applyHumanMove(move) {
         state = QuoridorGame.applyMove(state, move);
@@ -265,7 +420,7 @@
         updateUI();
         draw();
 
-        if (state.gameOver) {
+        if (state.gameOver || checkDrawConditions()) {
             showGameOver();
             return;
         }
@@ -291,7 +446,7 @@
             updateUI();
             draw();
 
-            if (state.gameOver) {
+            if (state.gameOver || checkDrawConditions()) {
                 showGameOver();
             }
         }, 100);
@@ -299,11 +454,22 @@
 
     function showGameOver() {
         const winner = state.winner;
-        const isHumanWin = winner === humanPlayer;
-        $('game-over-title').textContent = isHumanWin ? I18n.t('youWin') : I18n.t('aiWins');
-        $('game-over-msg').textContent = isHumanWin
-            ? I18n.t('congratulations')
-            : I18n.t('aiReachedGoal');
+        const isDraw = winner === -1;
+        const isHumanWin = !aiVsAiMode && winner === humanPlayer;
+
+        if (isDraw) {
+            $('game-over-title').textContent = I18n.t('draw');
+            $('game-over-msg').textContent = I18n.t('drawReason');
+        } else if (aiVsAiMode) {
+            $('game-over-title').textContent = I18n.t('gameOver');
+            $('game-over-msg').textContent = (winner === 0 ? I18n.t('player1') : I18n.t('player2')) + ' wins!';
+        } else {
+            $('game-over-title').textContent = isHumanWin ? I18n.t('youWin') : I18n.t('aiWins');
+            $('game-over-msg').textContent = isHumanWin
+                ? I18n.t('congratulations')
+                : I18n.t('aiReachedGoal');
+        }
+
         $('game-over-stats').innerHTML =
             I18n.t('movesPlayed') + ': ' + state.moveHistory.length + '<br>' +
             I18n.t('wallsUsed') + ' - P1: ' + (QuoridorGame.TOTAL_WALLS - state.players[0].walls) +
@@ -389,9 +555,6 @@
         $('position-summary').textContent = QuoridorAI.getPositionSummary(state);
     }
 
-    function cellX(col) { return PAD + col * (CELL + GAP); }
-    function cellY(row) { return PAD + row * (CELL + GAP); }
-
     function draw() {
         const COLORS = getColors();
 
@@ -400,8 +563,6 @@
 
         for (let r = 0; r < SIZE; r++) {
             for (let c = 0; c < SIZE; c++) {
-                const x = cellX(c);
-                const y = cellY(r);
                 let color = COLORS.cell;
 
                 if (actionMode === 'move' && state && !state.gameOver &&
@@ -417,24 +578,15 @@
                 }
 
                 ctx.fillStyle = color;
-                ctx.fillRect(x, y, CELL, CELL);
+                ctx.fillRect(cellX(c), cellY(r), CELL, CELL);
             }
         }
 
-        ctx.font = 'bold 10px monospace';
-        ctx.fillStyle = COLORS.coord;
-        ctx.textAlign = 'center';
-        for (let c = 0; c < SIZE; c++) {
-            ctx.fillText(String.fromCharCode(97 + c), cellX(c) + CELL / 2, PAD - 6);
-        }
-        ctx.textAlign = 'right';
-        for (let r = 0; r < SIZE; r++) {
-            ctx.fillText((r + 1).toString(), PAD - 6, cellY(r) + CELL / 2 + 4);
-        }
+        drawCoordinates(ctx, COLORS);
 
         if (state) {
             for (const w of state.walls) {
-                drawWall(w.row, w.col, w.orientation, COLORS.wallPlaced, 4);
+                _drawWall(ctx, w.row, w.col, w.orientation, COLORS.wallPlaced, 4);
             }
         }
 
@@ -442,21 +594,20 @@
             const valid = QuoridorGame.isValidWallPlacement(
                 state, hoverWall.row, hoverWall.col, hoverWall.orientation);
             const color = valid ? COLORS.wallPreview : COLORS.wallInvalid;
-            drawWall(hoverWall.row, hoverWall.col, hoverWall.orientation, color, 6);
+            _drawWall(ctx, hoverWall.row, hoverWall.col, hoverWall.orientation, color, 6);
         }
 
         if (state) {
-            drawPawn(state.players[0].row, state.players[0].col, COLORS.p1, 'P1');
-            drawPawn(state.players[1].row, state.players[1].col, COLORS.p2, 'P2');
-
-            ctx.globalAlpha = 0.15;
-            for (let c = 0; c < SIZE; c++) {
-                ctx.fillStyle = COLORS.p1;
-                ctx.fillRect(cellX(c), cellY(8), CELL, 3);
-                ctx.fillStyle = COLORS.p2;
-                ctx.fillRect(cellX(c), cellY(0) + CELL - 3, CELL, 3);
+            // Shortest path visualization
+            if (showPaths) {
+                BoardRenderer.drawPath(ctx, state, 0, COLORS.pathP1);
+                BoardRenderer.drawPath(ctx, state, 1, COLORS.pathP2);
             }
-            ctx.globalAlpha = 1;
+
+            _drawPawn(ctx, state.players[0].row, state.players[0].col, COLORS.p1, 'P1');
+            _drawPawn(ctx, state.players[1].row, state.players[1].col, COLORS.p2, 'P2');
+
+            drawGoalIndicators(ctx, COLORS);
         }
 
         if (aiThinking) {
@@ -467,47 +618,6 @@
             ctx.textAlign = 'center';
             ctx.fillText(I18n.t('aiThinking'), BOARD_PX / 2, BOARD_PX / 2);
         }
-    }
-
-    function drawWall(row, col, orientation, color, width) {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = width;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-
-        if (orientation === 'h') {
-            const x1 = cellX(col);
-            const x2 = cellX(col + 1) + CELL;
-            const y = cellY(row + 1) - GAP / 2;
-            ctx.moveTo(x1, y);
-            ctx.lineTo(x2, y);
-        } else {
-            const y1 = cellY(row);
-            const y2 = cellY(row + 1) + CELL;
-            const x = cellX(col + 1) - GAP / 2;
-            ctx.moveTo(x, y1);
-            ctx.lineTo(x, y2);
-        }
-        ctx.stroke();
-    }
-
-    function drawPawn(row, col, color, label) {
-        const x = cellX(col) + CELL / 2;
-        const y = cellY(row) + CELL / 2;
-
-        ctx.beginPath();
-        ctx.arc(x, y, CELL * 0.35, 0, Math.PI * 2);
-        ctx.fillStyle = color;
-        ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        ctx.fillStyle = '#fff';
-        ctx.font = 'bold 14px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(label, x, y);
     }
 
     initTheme();

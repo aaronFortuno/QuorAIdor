@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QourAIdor - Training Arena</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="training.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div id="header-controls">
+                <a href="index.html" class="secondary-btn" style="text-decoration:none;">&larr; Game</a>
+                <button id="theme-toggle" aria-label="Toggle theme">
+                    <span id="theme-icon">&#9728;&#65039;</span>
+                </button>
+            </div>
+            <h1>QourAIdor <span class="training-badge">Training Arena</span></h1>
+            <p class="subtitle">Evolutionary AI Self-Play</p>
+        </header>
+
+        <!-- CONFIGURATION PANEL -->
+        <div id="config-screen" class="screen active">
+            <div class="config-layout">
+                <div class="config-card">
+                    <h3>Population</h3>
+                    <div class="config-row">
+                        <label>Population size</label>
+                        <input type="number" id="cfg-pop-size" value="20" min="4" max="100" step="2">
+                    </div>
+                    <div class="config-row">
+                        <label>Elite (preserved)</label>
+                        <input type="number" id="cfg-elite" value="2" min="1" max="10">
+                    </div>
+                    <div class="config-row">
+                        <label>Tournament size</label>
+                        <input type="number" id="cfg-tournament" value="3" min="2" max="8">
+                    </div>
+                </div>
+
+                <div class="config-card">
+                    <h3>Evolution</h3>
+                    <div class="config-row">
+                        <label>Mutation rate</label>
+                        <input type="number" id="cfg-mut-rate" value="0.3" min="0.01" max="1" step="0.05">
+                    </div>
+                    <div class="config-row">
+                        <label>Mutation strength</label>
+                        <input type="number" id="cfg-mut-strength" value="0.4" min="0.05" max="2" step="0.05">
+                    </div>
+                    <div class="config-row">
+                        <label>Crossover rate</label>
+                        <input type="number" id="cfg-crossover" value="0.7" min="0" max="1" step="0.05">
+                    </div>
+                </div>
+
+                <div class="config-card">
+                    <h3>Games</h3>
+                    <div class="config-row">
+                        <label>Games per matchup</label>
+                        <input type="number" id="cfg-games-per-match" value="2" min="1" max="10">
+                    </div>
+                    <div class="config-row">
+                        <label>Opponents per genome</label>
+                        <input type="number" id="cfg-opponents" value="4" min="1" max="10">
+                    </div>
+                    <div class="config-row">
+                        <label>Search depth</label>
+                        <select id="cfg-depth">
+                            <option value="1">1 (Fast)</option>
+                            <option value="2" selected>2 (Balanced)</option>
+                            <option value="3">3 (Strong / Slow)</option>
+                        </select>
+                    </div>
+                    <div class="config-row">
+                        <label>Max moves per game</label>
+                        <input type="number" id="cfg-max-moves" value="200" min="50" max="500" step="10">
+                    </div>
+                </div>
+
+                <div class="config-card">
+                    <h3>Training</h3>
+                    <div class="config-row">
+                        <label>Max generations</label>
+                        <input type="number" id="cfg-max-gen" value="50" min="1" max="1000">
+                    </div>
+                    <div class="config-row">
+                        <label>Visualize games</label>
+                        <select id="cfg-visualize">
+                            <option value="all">All games</option>
+                            <option value="best" selected>Best genome only</option>
+                            <option value="none">None (max speed)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-card" style="width: 100%; max-width: 560px;">
+                <h3>Persistence</h3>
+                <div id="saved-status" class="persistence-status"></div>
+                <div id="pop-saved-status" class="persistence-status" style="margin-top:8px;"></div>
+                <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+                    <button id="btn-clear-weights" class="secondary-btn small-btn">Reset Trained Weights</button>
+                    <button id="btn-clear-saved" class="secondary-btn small-btn">Clear Saved Population</button>
+                </div>
+            </div>
+
+            <div class="config-actions">
+                <button id="btn-start-training" class="primary-btn">Start Training</button>
+                <button id="btn-import-pop" class="secondary-btn">Import Population</button>
+            </div>
+        </div>
+
+        <!-- TRAINING ARENA -->
+        <div id="arena-screen" class="screen">
+            <div class="arena-layout">
+                <!-- Left: Evolution stats -->
+                <div id="evolution-panel" class="arena-panel">
+                    <h3>Evolution</h3>
+                    <div class="stat-row">
+                        <span>Generation</span>
+                        <span id="stat-generation">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Games played</span>
+                        <span id="stat-games-played">0</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Best fitness</span>
+                        <span id="stat-best-fitness">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Avg fitness</span>
+                        <span id="stat-avg-fitness">-</span>
+                    </div>
+                    <div class="stat-row">
+                        <span>Speed</span>
+                        <span id="stat-speed">-</span>
+                    </div>
+
+                    <h3 style="margin-top:16px;">Fitness Chart</h3>
+                    <canvas id="fitness-chart" width="280" height="150"></canvas>
+
+                    <h3 style="margin-top:16px;">Top Genomes</h3>
+                    <div id="leaderboard"></div>
+                </div>
+
+                <!-- Center: Game visualization -->
+                <div id="arena-center">
+                    <div id="match-header">
+                        <span id="match-p1-label" class="match-player p1-label">Genome A</span>
+                        <span class="match-vs">vs</span>
+                        <span id="match-p2-label" class="match-player p2-label">Genome B</span>
+                    </div>
+                    <canvas id="arena-canvas"></canvas>
+                    <div id="arena-controls">
+                        <button id="btn-pause" class="ctrl-btn" title="Pause / Resume">&#9208;</button>
+                        <button id="btn-step" class="ctrl-btn" title="Step">&#9654;</button>
+                        <div class="speed-control">
+                            <label>Speed</label>
+                            <input type="range" id="speed-slider" min="0" max="4" value="2" step="1">
+                            <span id="speed-label">5x</span>
+                        </div>
+                        <button id="btn-stop" class="ctrl-btn danger" title="Stop training">&#9632;</button>
+                    </div>
+                    <div id="arena-status">Ready to start</div>
+                </div>
+
+                <!-- Right: Game browser + weights -->
+                <div id="games-panel" class="arena-panel">
+                    <h3>Current Match</h3>
+                    <div id="live-move-list" class="move-list-compact"></div>
+
+                    <h3 style="margin-top:16px;">Game Browser</h3>
+                    <div id="game-browser"></div>
+
+                    <h3 style="margin-top:16px;">Actions</h3>
+                    <button id="btn-export-best" class="secondary-btn" style="width:100%;margin:4px 0;">Export Best Weights</button>
+                    <button id="btn-export-pop" class="secondary-btn" style="width:100%;margin:4px 0;">Export Population</button>
+                    <button id="btn-back-config" class="secondary-btn" style="width:100%;margin:4px 0;">Back to Config</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- REPLAY MODAL -->
+        <div id="replay-modal" class="modal hidden">
+            <div class="modal-content" style="max-width:650px;">
+                <h2>Game Replay</h2>
+                <div id="replay-info"></div>
+                <canvas id="replay-canvas"></canvas>
+                <div id="replay-controls">
+                    <button id="replay-start" class="ctrl-btn">&#9198;</button>
+                    <button id="replay-prev" class="ctrl-btn">&#9664;</button>
+                    <button id="replay-play" class="ctrl-btn">&#9654;</button>
+                    <button id="replay-next" class="ctrl-btn">&#9654;</button>
+                    <button id="replay-end" class="ctrl-btn">&#9197;</button>
+                    <span id="replay-move-num">0 / 0</span>
+                </div>
+                <div id="replay-move-list" class="move-list-compact"></div>
+                <button id="replay-close" class="secondary-btn" style="margin-top:12px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="i18n.js"></script>
+    <script src="game.js"></script>
+    <script src="ai.js"></script>
+    <script src="renderer.js"></script>
+    <script src="training.js"></script>
+</body>
+</html>

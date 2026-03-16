@@ -457,6 +457,26 @@ h2 {
 #move-list::-webkit-scrollbar-track { background: transparent; }
 #move-list::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
 
+/* Trained weights indicator */
+.trained-badge {
+    display: inline-block;
+    font-size: 0.75em;
+    padding: 3px 10px;
+    border-radius: 12px;
+    background: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    margin-bottom: 8px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+[data-theme="light"] .trained-badge {
+    background: rgba(46, 125, 50, 0.1);
+    color: #2e7d32;
+    border-color: rgba(46, 125, 50, 0.3);
+}
+
 @media (max-width: 800px) {
     #game-layout {
         flex-direction: column;

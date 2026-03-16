@@ -10,6 +10,8 @@ const I18n = (() => {
             easy: 'Fàcil',
             medium: 'Mitjà',
             hard: 'Difícil',
+            expert: 'Expert',
+            gamePhase: 'Fase: {phase}',
             startGame: 'Començar Partida',
             player1: 'Jugador 1',
             player2: 'Jugador 2',
@@ -46,7 +48,13 @@ const I18n = (() => {
             p1Win: 'Victòria J1',
             p2Win: 'Victòria J2',
             light: 'Clar',
-            dark: 'Fosc'
+            dark: 'Fosc',
+            trainingArena: 'Arena d\'Entrenament',
+            trainedAI: 'IA Entrenada',
+            draw: 'Taules!',
+            drawReason: 'La partida ha acabat en taules per repetició o límit de moviments.',
+            showPaths: 'Camins',
+            watchAI: 'Veure IA vs IA'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -58,6 +66,8 @@ const I18n = (() => {
             easy: 'Fácil',
             medium: 'Medio',
             hard: 'Difícil',
+            expert: 'Experto',
+            gamePhase: 'Fase: {phase}',
             startGame: 'Empezar Partida',
             player1: 'Jugador 1',
             player2: 'Jugador 2',
@@ -94,7 +104,13 @@ const I18n = (() => {
             p1Win: 'Victoria J1',
             p2Win: 'Victoria J2',
             light: 'Claro',
-            dark: 'Oscuro'
+            dark: 'Oscuro',
+            trainingArena: 'Arena de Entrenamiento',
+            trainedAI: 'IA Entrenada',
+            draw: '¡Tablas!',
+            drawReason: 'La partida ha terminado en tablas por repetición o límite de movimientos.',
+            showPaths: 'Caminos',
+            watchAI: 'Ver IA vs IA'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -106,6 +122,8 @@ const I18n = (() => {
             easy: 'Easy',
             medium: 'Medium',
             hard: 'Hard',
+            expert: 'Expert',
+            gamePhase: 'Phase: {phase}',
             startGame: 'Start Game',
             player1: 'Player 1',
             player2: 'Player 2',
@@ -142,7 +160,13 @@ const I18n = (() => {
             p1Win: 'P1 win',
             p2Win: 'P2 win',
             light: 'Light',
-            dark: 'Dark'
+            dark: 'Dark',
+            trainingArena: 'Training Arena',
+            trainedAI: 'Trained AI',
+            draw: 'Draw!',
+            drawReason: 'The game ended in a draw due to repetition or move limit.',
+            showPaths: 'Paths',
+            watchAI: 'Watch AI vs AI'
         }
     };
 

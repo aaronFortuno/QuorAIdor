@@ -38,9 +38,14 @@
                     <button class="toggle-btn" data-depth="1" data-i18n="easy">Fàcil</button>
                     <button class="toggle-btn selected" data-depth="2" data-i18n="medium">Mitjà</button>
                     <button class="toggle-btn" data-depth="3" data-i18n="hard">Difícil</button>
+                    <button class="toggle-btn" data-depth="4" data-i18n="expert">Expert</button>
                 </div>
             </div>
             <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
+            <button id="watch-ai-btn" class="secondary-btn" data-i18n="watchAI" style="margin-top: 12px;">Veure IA vs IA</button>
+            <div style="margin-top: 12px;">
+                <a href="training.html" class="secondary-btn" data-i18n="trainingArena" style="text-decoration:none; display:inline-block;">Training Arena</a>
+            </div>
         </div>
 
         <div id="game-screen" class="screen">
@@ -93,6 +98,7 @@
             </div>
             <div id="game-buttons">
                 <button id="undo-btn" class="secondary-btn" data-i18n="undo">Desfer</button>
+                <button id="paths-btn" class="secondary-btn" data-i18n="showPaths">Camins</button>
                 <button id="new-game-btn" class="secondary-btn" data-i18n="newGame">Nova Partida</button>
                 <button id="back-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>
             </div>
@@ -112,6 +118,7 @@
     <script src="i18n.js"></script>
     <script src="game.js"></script>
     <script src="ai.js"></script>
+    <script src="renderer.js"></script>
     <script src="ui.js"></script>
 </body>
 </html>

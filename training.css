@@ -1,0 +1,349 @@
+.training-badge {
+    font-size: 0.6em;
+    background: var(--accent);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 12px;
+    vertical-align: middle;
+    letter-spacing: 1px;
+}
+
+/* ---- Config screen ---- */
+.config-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.config-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    width: 260px;
+    text-align: left;
+}
+
+.config-card h3 {
+    color: var(--accent);
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.config-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.config-row label {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.config-row input,
+.config-row select {
+    width: 90px;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--btn-bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+.config-row select {
+    width: 120px;
+}
+
+.config-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+/* ---- Arena layout ---- */
+.arena-layout {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.arena-panel {
+    width: 280px;
+    background: var(--panel-bg);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: left;
+    flex-shrink: 0;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.arena-panel h3 {
+    color: var(--accent);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+#arena-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+#match-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.match-player {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+}
+
+.p1-label { color: #4fc3f7; background: rgba(79,195,247,0.1); }
+.p2-label { color: #e94560; background: rgba(233,69,96,0.1); }
+.match-vs { color: var(--text-dim); font-size: 0.8rem; }
+
+#arena-canvas,
+#replay-canvas {
+    border-radius: 4px;
+    cursor: default;
+}
+
+#arena-controls,
+#replay-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.ctrl-btn {
+    background: var(--btn-bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ctrl-btn.danger:hover { border-color: #f44; color: #f44; }
+.ctrl-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.speed-control {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 8px;
+}
+
+.speed-control label {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+}
+
+#speed-slider { width: 80px; }
+
+#speed-label {
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: var(--text);
+    min-width: 36px;
+}
+
+#arena-status {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    font-family: 'Courier New', monospace;
+}
+
+/* ---- Stats ---- */
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 0.82rem;
+}
+
+.stat-row span:first-child { color: var(--text-muted); }
+.stat-row span:last-child { color: var(--text); font-weight: bold; font-family: 'Courier New', monospace; }
+
+#fitness-chart {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+/* ---- Leaderboard ---- */
+#leaderboard {
+    max-height: 180px;
+    overflow-y: auto;
+    font-size: 0.78rem;
+    font-family: 'Courier New', monospace;
+}
+
+.lb-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.lb-entry:hover { background: rgba(233,69,96,0.08); }
+.lb-entry:nth-child(odd) { background: var(--move-odd-bg); }
+.lb-entry .lb-rank { color: var(--accent); min-width: 24px; }
+.lb-entry .lb-fitness { color: var(--text); }
+.lb-entry .lb-wins { color: var(--text-dim); font-size: 0.72rem; }
+
+/* ---- Move list (compact) ---- */
+.move-list-compact {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.75rem;
+    font-family: 'Courier New', monospace;
+    line-height: 1.5;
+}
+
+.move-list-compact::-webkit-scrollbar { width: 4px; }
+.move-list-compact::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+/* ---- Game browser ---- */
+#game-browser {
+    max-height: 250px;
+    overflow-y: auto;
+    font-size: 0.75rem;
+}
+
+#game-browser::-webkit-scrollbar { width: 4px; }
+#game-browser::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 2px; }
+
+.game-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-family: 'Courier New', monospace;
+}
+
+.game-entry:hover { background: rgba(79,195,247,0.1); }
+.game-entry:nth-child(odd) { background: var(--move-odd-bg); }
+
+.game-result-win { color: #4caf50; }
+.game-result-loss { color: #e94560; }
+.game-result-draw { color: var(--text-dim); }
+
+/* ---- Replay modal ---- */
+#replay-info {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+#replay-move-num {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-left: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+#replay-move-list {
+    margin-top: 10px;
+    max-height: 150px;
+}
+
+/* ---- Responsive ---- */
+/* Persistence indicators */
+.persistence-status {
+    font-size: 0.85em;
+    color: var(--text-secondary, #aaa);
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+}
+
+.persistence-status small {
+    opacity: 0.7;
+}
+
+.saved-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-secondary, #666);
+    margin-top: 5px;
+    flex-shrink: 0;
+}
+
+.saved-indicator.active {
+    background: #4caf50;
+    box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+}
+
+.small-btn {
+    font-size: 0.8em;
+    padding: 6px 12px;
+}
+
+/* Trained badge in main game */
+.trained-badge {
+    display: inline-block;
+    font-size: 0.65em;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.4);
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: normal;
+}
+
+@media (max-width: 1100px) {
+    .arena-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+    .arena-panel { width: 100%; max-width: 500px; }
+}
+
+@media (max-width: 600px) {
+    .config-layout { flex-direction: column; align-items: center; }
+    .config-card { width: 100%; max-width: 340px; }
+}

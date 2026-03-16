@@ -377,6 +377,15 @@ const QuoridorAI = (() => {
     function minimax(state, depth, alpha, beta, maximizing, w) {
         nodesSearched++;
 
+        // Time check every 512 nodes
+        if (searchDeadline && (nodesSearched & 511) === 0) {
+            if (Date.now() >= searchDeadline) {
+                searchTimedOut = true;
+                return { score: evaluate(state, w), action: null };
+            }
+        }
+        if (searchTimedOut) return { score: evaluate(state, w), action: null };
+
         if (depth === 0 || state.gameOver) {
             return { score: evaluate(state, w), action: null };
         }
@@ -452,6 +461,13 @@ const QuoridorAI = (() => {
      *  Accepts optional weights for training system
      * =================================================================== */
 
+    // Time limit flag for iterative deepening (checked periodically in minimax)
+    let searchTimedOut = false;
+    let searchDeadline = 0;
+
+    // Time limits per depth level (ms). Depths 1-2 use fixed depth, 3+ use time limit.
+    const TIME_LIMITS = { 3: 2000, 4: 5000 };
+
     function getBestMove(state, customWeights) {
         // Consult opening book first (not used in training with custom weights)
         if (!customWeights && typeof QuoridorOpenings !== 'undefined') {
@@ -465,9 +481,18 @@ const QuoridorAI = (() => {
         }
 
         nodesSearched = 0;
-        ttable.clear(); // Fresh TT for each top-level search
+        searchTimedOut = false;
         const w = customWeights || activeWeights;
         const maximizing = state.currentPlayer === 0;
+
+        // Use iterative deepening for depth >= 3
+        const timeLimit = TIME_LIMITS[searchDepth];
+        if (timeLimit && !customWeights) {
+            return getBestMoveIterative(state, timeLimit, w, maximizing);
+        }
+
+        // Fixed depth for depth 1-2 or training
+        ttable.clear();
         const result = minimax(state, searchDepth, -Infinity, Infinity, maximizing, w);
         lastEvaluation = getAnalysis(state);
         lastEvaluation.nodesSearched = nodesSearched;
@@ -475,10 +500,57 @@ const QuoridorAI = (() => {
         return result.action;
     }
 
+    /**
+     * Iterative deepening search with time limit.
+     * Searches depth 1, 2, 3, ... until time runs out.
+     * The TT preserves move ordering from previous iterations.
+     */
+    function getBestMoveIterative(state, maxTimeMs, w, maximizing) {
+        const startTime = Date.now();
+        searchDeadline = startTime + maxTimeMs;
+        searchTimedOut = false;
+        ttable.clear();
+
+        let bestAction = null;
+        let bestScore = -Infinity;
+        let completedDepth = 0;
+
+        for (let d = 1; d <= 8; d++) { // max depth 8 as safety cap
+            nodesSearched = 0;
+            searchTimedOut = false;
+
+            const result = minimax(state, d, -Infinity, Infinity, maximizing, w);
+
+            if (searchTimedOut) {
+                // This depth didn't complete; use result from previous depth
+                break;
+            }
+
+            bestAction = result.action;
+            bestScore = result.score;
+            completedDepth = d;
+
+            // If we found a forced win/loss, no need to search deeper
+            if (Math.abs(bestScore) >= 900) break;
+
+            // If more than 70% of time used, don't start next depth
+            if (Date.now() - startTime > maxTimeMs * 0.7) break;
+        }
+
+        lastEvaluation = getAnalysis(state);
+        lastEvaluation.nodesSearched = nodesSearched;
+        lastEvaluation.fromBook = false;
+        lastEvaluation.searchDepth = completedDepth;
+        return bestAction;
+    }
+
     function getBestMoveAtDepth(state, depth, customWeights) {
         nodesSearched = 0;
+        searchTimedOut = false;
+        searchDeadline = 0; // No time limit for fixed-depth
         const w = customWeights || activeWeights;
         const maximizing = state.currentPlayer === 0;
+        ttable.clear();
         const result = minimax(state, depth, -Infinity, Infinity, maximizing, w);
         return result.action;
     }

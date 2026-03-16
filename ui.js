@@ -1345,6 +1345,25 @@
         html += '<div class="rules-tip">' + I18n.t('rulesTip3') + '</div>';
         html += '</div>';
 
+        // Strategy guide section
+        html += '<div class="rules-section"><h3>' + I18n.t('strategyTitle') + '</h3>';
+        html += '<p style="margin-bottom:10px;">' + I18n.t('strategyIntro') + '</p>';
+        const strategies = [
+            { title: 'stratCorridorTitle', text: 'stratCorridorText' },
+            { title: 'stratEconomyTitle', text: 'stratEconomyText' },
+            { title: 'stratTempoTitle', text: 'stratTempoText' },
+            { title: 'stratRacingTitle', text: 'stratRacingText' },
+        ];
+        for (const s of strategies) {
+            html += '<div class="rules-tip"><strong>' + I18n.t(s.title) + ':</strong> ' + I18n.t(s.text) + '</div>';
+        }
+        html += '</div>';
+
+        // Opening theory section
+        html += '<div class="rules-section"><h3>' + I18n.t('openingsTitle') + '</h3>';
+        html += '<p>' + I18n.t('openingsText') + '</p>';
+        html += '</div>';
+
         body.innerHTML = html;
         openModal('rules-modal');
     }

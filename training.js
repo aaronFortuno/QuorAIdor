@@ -1214,6 +1214,51 @@
         updateStatus('Trained weights cleared — AI will use default weights');
     });
 
+    // Test best trained genome vs default weights
+    $('btn-test-vs-default').addEventListener('click', async () => {
+        const resultEl = $('test-result');
+        const raw = localStorage.getItem(LS_BEST_WEIGHTS);
+        if (!raw) {
+            resultEl.textContent = 'No trained weights available. Run training first.';
+            return;
+        }
+        const trainedWeights = JSON.parse(raw);
+        const defaultWeights = QuoridorAI.getDefaultWeights();
+        const totalGames = 10;
+        const depth = 2;
+        const maxMoves = 150;
+        let trainedWins = 0;
+        let defaultWins = 0;
+        let draws = 0;
+
+        $('btn-test-vs-default').disabled = true;
+        resultEl.innerHTML = '<span class="saved-indicator active"></span>Testing... 0/' + totalGames;
+
+        for (let g = 0; g < totalGames; g++) {
+            const asP1 = g % 2 === 0;
+            const wA = asP1 ? trainedWeights : defaultWeights;
+            const wB = asP1 ? defaultWeights : trainedWeights;
+            const result = playGameHeadless(wA, wB, depth, maxMoves);
+            const trainedPlayer = asP1 ? 0 : 1;
+
+            if (result.winner === trainedPlayer) trainedWins++;
+            else if (result.winner === -1) draws++;
+            else defaultWins++;
+
+            resultEl.innerHTML = '<span class="saved-indicator active"></span>Testing... ' + (g + 1) + '/' + totalGames;
+            await yieldUI();
+        }
+
+        const wr = ((trainedWins / totalGames) * 100).toFixed(0);
+        resultEl.innerHTML =
+            '<span class="saved-indicator' + (trainedWins > defaultWins ? ' active' : '') + '"></span>' +
+            'Trained <strong>' + trainedWins + '</strong> - <strong>' + defaultWins + '</strong> Default' +
+            (draws > 0 ? ' (' + draws + ' draws)' : '') +
+            ' | Win rate: ' + wr + '%';
+
+        $('btn-test-vs-default').disabled = false;
+    });
+
     function updateSavedStatus() {
         const meta = getTrainingMeta();
         const statusEl = $('saved-status');

@@ -90,7 +90,19 @@ const I18n = (() => {
             cancel: 'Cancel·lar',
             tabInfo: 'Info',
             tabMoves: 'Moviments',
-            tabAnalysis: 'Anàlisi'
+            tabAnalysis: 'Anàlisi',
+            strategyTitle: 'Estratègia Avançada',
+            strategyIntro: 'Quoridor és un joc d\'equilibri entre avançar i bloquejar. Dominar aquestes idees et farà un jugador molt més fort.',
+            stratCorridorTitle: 'Trampes de corredor',
+            stratCorridorText: 'Col·loca un mur que deixi l\'oponent amb un sol camí estret. Després, un segon mur pot allargar dramàticament la seva ruta. Aquesta combinació de 2 murs és la tàctica més poderosa del joc.',
+            stratEconomyTitle: 'Economia de murs',
+            stratEconomyText: 'Cada mur és valuós — no el malgastis! Un mur que allarga el camí de l\'oponent en 2+ caselles és excel·lent. Un que només l\'allarga en 1 rarament val la pena. Guarda murs per moments crítics.',
+            stratTempoTitle: 'Tempo i velocitat',
+            stratTempoText: 'Si l\'oponent no té murs, avança sense por — no pot aturar-te! Vigila sempre el comptador de murs de tots dos jugadors.',
+            stratRacingTitle: 'Cursa vs bloqueig',
+            stratRacingText: 'Si el teu camí és més curt que el de l\'oponent, avança. Si és més llarg, col·loca murs per igualar o invertir l\'avantatge. Utilitza el botó "Camins" per visualitzar les rutes.',
+            openingsTitle: 'Teoria d\'Obertures',
+            openingsText: 'L\'obertura estàndard és avançar centralment 3 cops (e2, e3, e4). L\'Obertura Shiller afegeix un mur vertical a e3 al 4t torn, creant un corredor defensiu. Desviar-se del centre en els primers moviments sol ser un error.'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -182,7 +194,19 @@ const I18n = (() => {
             cancel: 'Cancelar',
             tabInfo: 'Info',
             tabMoves: 'Movimientos',
-            tabAnalysis: 'Análisis'
+            tabAnalysis: 'Análisis',
+            strategyTitle: 'Estrategia Avanzada',
+            strategyIntro: 'Quoridor es un juego de equilibrio entre avanzar y bloquear. Dominar estas ideas te hará un jugador mucho más fuerte.',
+            stratCorridorTitle: 'Trampas de corredor',
+            stratCorridorText: 'Coloca un muro que deje al oponente con un solo camino estrecho. Después, un segundo muro puede alargar dramáticamente su ruta. Esta combinación de 2 muros es la táctica más poderosa del juego.',
+            stratEconomyTitle: 'Economía de muros',
+            stratEconomyText: 'Cada muro es valioso — ¡no lo malgastes! Un muro que alarga el camino del oponente en 2+ casillas es excelente. Uno que solo lo alarga en 1 rara vez vale la pena. Guarda muros para momentos críticos.',
+            stratTempoTitle: 'Tempo y velocidad',
+            stratTempoText: 'Si el oponente no tiene muros, ¡avanza sin miedo — no puede detenerte! Vigila siempre el contador de muros de ambos jugadores.',
+            stratRacingTitle: 'Carrera vs bloqueo',
+            stratRacingText: 'Si tu camino es más corto que el del oponente, avanza. Si es más largo, coloca muros para igualar o invertir la ventaja. Usa el botón "Caminos" para visualizar las rutas.',
+            openingsTitle: 'Teoría de Aperturas',
+            openingsText: 'La apertura estándar es avanzar centralmente 3 veces (e2, e3, e4). La Apertura Shiller añade un muro vertical en e3 al 4to turno, creando un corredor defensivo. Desviarse del centro en los primeros movimientos suele ser un error.'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -274,7 +298,19 @@ const I18n = (() => {
             cancel: 'Cancel',
             tabInfo: 'Info',
             tabMoves: 'Moves',
-            tabAnalysis: 'Analysis'
+            tabAnalysis: 'Analysis',
+            strategyTitle: 'Advanced Strategy',
+            strategyIntro: 'Quoridor is a game of balance between advancing and blocking. Mastering these ideas will make you a much stronger player.',
+            stratCorridorTitle: 'Corridor traps',
+            stratCorridorText: 'Place a wall that leaves the opponent with only one narrow path. Then, a second wall can dramatically extend their route. This 2-wall combo is the most powerful tactic in the game.',
+            stratEconomyTitle: 'Wall economy',
+            stratEconomyText: 'Every wall is valuable — don\'t waste them! A wall that extends the opponent\'s path by 2+ cells is excellent. One that only adds 1 cell is rarely worth it. Save walls for critical moments.',
+            stratTempoTitle: 'Tempo and speed',
+            stratTempoText: 'If the opponent has no walls, advance fearlessly — they can\'t stop you! Always watch the wall counter for both players.',
+            stratRacingTitle: 'Racing vs blocking',
+            stratRacingText: 'If your path is shorter than the opponent\'s, advance. If it\'s longer, place walls to equalize or reverse the advantage. Use the "Paths" button to visualize routes.',
+            openingsTitle: 'Opening Theory',
+            openingsText: 'The standard opening is to advance centrally 3 times (e2, e3, e4). The Shiller Opening adds a vertical wall at e3 on the 4th turn, creating a defensive corridor. Deviating from the center in the first moves is usually a mistake.'
         }
     };
 

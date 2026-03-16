@@ -41,6 +41,9 @@
     // R3: Fast valid move lookup
     let validMovesSet = new Set();
 
+    // 1C: Keyboard cursor for board navigation
+    let kbCursor = null; // { row, col } or null if not active
+
     // H: Save/load game state
     const LS_GAME_STATE = 'qouraid-game-state';
 
@@ -773,6 +776,79 @@
         draw();
     }, { passive: false });
 
+    // 1C: Keyboard navigation for the board
+    canvas.addEventListener('keydown', (e) => {
+        if (aiThinking || !state || state.gameOver) return;
+        const isHumanTurn = hvhMode || state.currentPlayer === humanPlayer;
+        if (!isHumanTurn && !aiVsAiMode) return;
+
+        // Initialize cursor at current player's position if not active
+        if (!kbCursor) {
+            const cp = hvhMode ? state.currentPlayer : humanPlayer;
+            const p = state.players[cp];
+            kbCursor = { row: p.row, col: p.col };
+        }
+
+        let handled = true;
+        switch (e.key) {
+            case 'ArrowUp':
+                kbCursor.row = Math.max(0, kbCursor.row - 1);
+                break;
+            case 'ArrowDown':
+                kbCursor.row = Math.min(SIZE - 1, kbCursor.row + 1);
+                break;
+            case 'ArrowLeft':
+                kbCursor.col = Math.max(0, kbCursor.col - 1);
+                break;
+            case 'ArrowRight':
+                kbCursor.col = Math.min(SIZE - 1, kbCursor.col + 1);
+                break;
+            case 'Enter':
+            case ' ':
+                // Confirm action at cursor position
+                if (actionMode === 'move') {
+                    if (validMovesSet.has(kbCursor.row * 9 + kbCursor.col)) {
+                        applyHumanMove({ type: 'move', row: kbCursor.row, col: kbCursor.col });
+                        kbCursor = null; // Reset after move
+                    }
+                } else if (actionMode.startsWith('wall')) {
+                    const wRow = Math.min(kbCursor.row, SIZE - 2);
+                    const wCol = Math.min(kbCursor.col, SIZE - 2);
+                    const ori = actionMode === 'wall-h' ? 'h' : 'v';
+                    if (QuoridorGame.isValidWallPlacement(state, wRow, wCol, ori)) {
+                        applyHumanMove({ type: 'wall', row: wRow, col: wCol, orientation: ori });
+                        kbCursor = null;
+                    }
+                }
+                break;
+            case 'Tab':
+                // Cycle action mode: move → wall-h → wall-v → move
+                e.preventDefault();
+                if (actionMode === 'move') actionMode = 'wall-h';
+                else if (actionMode === 'wall-h') actionMode = 'wall-v';
+                else actionMode = 'move';
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+                const activeBtn = document.querySelector('.mode-btn[data-mode="' + actionMode + '"]');
+                if (activeBtn) activeBtn.classList.add('selected');
+                updateValidMoves();
+                break;
+            case 'Escape':
+                kbCursor = null;
+                actionMode = 'move';
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+                document.querySelector('.mode-btn[data-mode="move"]').classList.add('selected');
+                updateValidMoves();
+                break;
+            default:
+                handled = false;
+        }
+
+        if (handled) {
+            e.preventDefault();
+            draw();
+        }
+    });
+
     function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
 
     function startPawnAnim(player, fromRow, fromCol, toRow, toCol) {
@@ -1137,6 +1213,17 @@
             const alpha = Math.max(0, 0.4 * (1 - elapsed / 300));
             ctx.fillStyle = 'rgba(255, 0, 0, ' + alpha + ')';
             ctx.fillRect(cellX(invalidFlash.col), cellY(invalidFlash.row), CELL, CELL);
+        }
+
+        // 1C: Draw keyboard cursor highlight
+        if (kbCursor) {
+            const cx = cellX(kbCursor.col);
+            const cy = cellY(kbCursor.row);
+            ctx.strokeStyle = '#ffeb3b';
+            ctx.lineWidth = 3;
+            ctx.setLineDash([6, 3]);
+            ctx.strokeRect(cx + 1, cy + 1, CELL - 2, CELL - 2);
+            ctx.setLineDash([]);
         }
 
         drawCoordinates(ctx, COLORS);

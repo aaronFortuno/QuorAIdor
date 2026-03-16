@@ -44,6 +44,36 @@
     // H: Save/load game state
     const LS_GAME_STATE = 'qouraid-game-state';
 
+    // A11y: Focus trap for modals
+    let _focusTrapCleanup = null;
+    function openModal(modalId) {
+        const modal = $(modalId);
+        modal.classList.remove('hidden');
+        // Trap focus inside modal
+        const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (focusable.length > 0) focusable[0].focus();
+        function trapHandler(e) {
+            if (e.key === 'Tab' && focusable.length > 0) {
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first.focus();
+                }
+            }
+            if (e.key === 'Escape') closeModal(modalId);
+        }
+        modal.addEventListener('keydown', trapHandler);
+        _focusTrapCleanup = () => modal.removeEventListener('keydown', trapHandler);
+    }
+    function closeModal(modalId) {
+        $(modalId).classList.add('hidden');
+        if (_focusTrapCleanup) { _focusTrapCleanup(); _focusTrapCleanup = null; }
+    }
+
     function checkContinueButton() {
         if (hasSavedGame()) {
             $('continue-btn').classList.remove('hidden');
@@ -305,7 +335,7 @@
     $('back-menu-btn').addEventListener('click', () => {
         if (state && !state.gameOver && !aiVsAiMode) {
             // Show confirmation modal
-            $('confirm-exit-modal').classList.remove('hidden');
+            openModal('confirm-exit-modal');
         } else {
             aiVsAiRunning = false;
             aiVsAiMode = false;
@@ -317,7 +347,7 @@
 
     $('save-exit-btn').addEventListener('click', () => {
         autoSaveGame();
-        $('confirm-exit-modal').classList.add('hidden');
+        closeModal('confirm-exit-modal');
         aiVsAiRunning = false;
         aiVsAiMode = false;
         hvhMode = false;
@@ -327,7 +357,7 @@
 
     $('discard-exit-btn').addEventListener('click', () => {
         clearSavedGame();
-        $('confirm-exit-modal').classList.add('hidden');
+        closeModal('confirm-exit-modal');
         aiVsAiRunning = false;
         aiVsAiMode = false;
         hvhMode = false;
@@ -336,7 +366,7 @@
     });
 
     $('cancel-exit-btn').addEventListener('click', () => {
-        $('confirm-exit-modal').classList.add('hidden');
+        closeModal('confirm-exit-modal');
     });
     $('rematch-btn').addEventListener('click', () => {
         if (hvhMode) startHvHGame();
@@ -344,7 +374,7 @@
         else startNewGame();
     });
     $('modal-menu-btn').addEventListener('click', () => {
-        $('game-over-modal').classList.add('hidden');
+        closeModal('game-over-modal');
         showScreen('menu-screen');
     });
 
@@ -381,7 +411,7 @@
     let aiVsAiRunning = false;
 
     function startAIvsAI() {
-        $('game-over-modal').classList.add('hidden');
+        closeModal('game-over-modal');
 
         const depthBtn = document.querySelector('[data-depth].selected');
         const depth = parseInt(depthBtn.dataset.depth);
@@ -475,7 +505,7 @@
         aiVsAiMode = false;
         hvhMode = false;
 
-        $('game-over-modal').classList.add('hidden');
+        closeModal('game-over-modal');
         const colorBtn = document.querySelector('[data-color].selected');
         humanPlayer = parseInt(colorBtn.dataset.color) - 1;
         aiPlayer = 1 - humanPlayer;
@@ -532,7 +562,7 @@
         aiVsAiMode = false;
         hvhMode = true;
 
-        $('game-over-modal').classList.add('hidden');
+        closeModal('game-over-modal');
         humanPlayer = 'both';
         aiPlayer = -1;
 
@@ -803,12 +833,42 @@
         }
     }
 
+    function announceForScreenReader(text) {
+        const el = $('game-announce');
+        if (el) el.textContent = text;
+    }
+
+    function describeMoveForSR(move, playerIdx) {
+        const pName = playerIdx === 0 ? I18n.t('player1') : I18n.t('player2');
+        const col = String.fromCharCode(97 + move.col);
+        const row = move.row + 1;
+        if (move.type === 'move') {
+            return pName + ' moves to ' + col + row;
+        } else {
+            const ori = move.orientation === 'h' ? 'horizontal' : 'vertical';
+            return pName + ' places ' + ori + ' wall at ' + col + row;
+        }
+    }
+
+    function updateCanvasAriaLabel() {
+        if (!state) return;
+        const p1 = state.players[0];
+        const p2 = state.players[1];
+        const label = 'Board: P1 at ' + String.fromCharCode(97 + p1.col) + (p1.row + 1) +
+            ', P2 at ' + String.fromCharCode(97 + p2.col) + (p2.row + 1) +
+            ', ' + state.walls.length + ' walls placed' +
+            ', ' + (state.gameOver ? 'game over' : (state.currentPlayer === 0 ? 'P1' : 'P2') + ' to move');
+        canvas.setAttribute('aria-label', label);
+    }
+
     function applyHumanMove(move) {
         const prevState = state;
         const playerIdx = state.currentPlayer;
         state = QuoridorGame.applyMove(state, move);
         recordLastMove(move, playerIdx, prevState);
         stateHistory.push(QuoridorGame.cloneState(state));
+        announceForScreenReader(describeMoveForSR(move, playerIdx));
+        updateCanvasAriaLabel();
         updateValidMoves();
         updateUI();
         draw();
@@ -854,6 +914,8 @@
                 state = QuoridorGame.applyMove(state, move);
                 recordLastMove(move, playerIdx, prevState);
                 stateHistory.push(QuoridorGame.cloneState(state));
+                announceForScreenReader(describeMoveForSR(move, playerIdx));
+                updateCanvasAriaLabel();
             }
             aiThinking = false;
             stopAISpinner();
@@ -895,7 +957,7 @@
             I18n.t('movesPlayed') + ': ' + state.moveHistory.length + '<br>' +
             I18n.t('wallsUsed') + ' - P1: ' + (QuoridorGame.TOTAL_WALLS - state.players[0].walls) +
             ' | P2: ' + (QuoridorGame.TOTAL_WALLS - state.players[1].walls);
-        $('game-over-modal').classList.remove('hidden');
+        openModal('game-over-modal');
         clearSavedGame();
     }
 
@@ -1172,7 +1234,7 @@
     // F: How to Play modal
     $('how-to-play-btn').addEventListener('click', showRules);
     $('rules-close-btn').addEventListener('click', () => {
-        $('rules-modal').classList.add('hidden');
+        closeModal('rules-modal');
     });
 
     function showRules() {
@@ -1197,7 +1259,7 @@
         html += '</div>';
 
         body.innerHTML = html;
-        $('rules-modal').classList.remove('hidden');
+        openModal('rules-modal');
     }
 
     // E2: Mobile tabs for right panel

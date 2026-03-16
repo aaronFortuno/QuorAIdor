@@ -30,6 +30,10 @@
     // B3: AI thinking spinner angle
     let aiSpinnerAngle = 0;
     let aiSpinnerRAF = null;
+    // D2: Pawn movement animation
+    let pawnAnim = null; // { player, fromRow, fromCol, toRow, toCol, startTime, duration }
+    // D3: Wall fade-in
+    let wallFade = null; // { row, col, orientation, startTime, duration }
 
     const $ = id => document.getElementById(id);
 
@@ -94,7 +98,12 @@
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        $(id).classList.add('active');
+        const target = $(id);
+        // Force display to enable transition
+        target.style.display = 'block';
+        // Trigger reflow to ensure transition plays
+        void target.offsetWidth;
+        target.classList.add('active');
     }
 
     // Mode selector logic
@@ -563,18 +572,53 @@
         draw();
     }, { passive: false });
 
+    function easeOut(t) { return 1 - Math.pow(1 - t, 3); }
+
+    function startPawnAnim(player, fromRow, fromCol, toRow, toCol) {
+        pawnAnim = { player, fromRow, fromCol, toRow, toCol, startTime: performance.now(), duration: 200 };
+        function animLoop() {
+            const elapsed = performance.now() - pawnAnim.startTime;
+            if (elapsed < pawnAnim.duration) {
+                draw();
+                requestAnimationFrame(animLoop);
+            } else {
+                pawnAnim = null;
+                draw();
+            }
+        }
+        requestAnimationFrame(animLoop);
+    }
+
+    function startWallFade(row, col, orientation) {
+        wallFade = { row, col, orientation, startTime: performance.now(), duration: 150 };
+        function animLoop() {
+            const elapsed = performance.now() - wallFade.startTime;
+            if (elapsed < wallFade.duration) {
+                draw();
+                requestAnimationFrame(animLoop);
+            } else {
+                wallFade = null;
+                draw();
+            }
+        }
+        requestAnimationFrame(animLoop);
+    }
+
     function recordLastMove(move, playerIdx, prevState) {
         // Decrement glow turns on previous wall move
         if (lastMove && lastMove.type === 'wall' && lastMove.wallGlowTurns > 0) {
             lastMove.wallGlowTurns--;
         }
         if (move.type === 'move') {
+            const fromRow = prevState.players[playerIdx].row;
+            const fromCol = prevState.players[playerIdx].col;
             lastMove = {
                 type: 'move',
-                from: { row: prevState.players[playerIdx].row, col: prevState.players[playerIdx].col },
+                from: { row: fromRow, col: fromCol },
                 to: { row: move.row, col: move.col },
                 player: playerIdx
             };
+            startPawnAnim(playerIdx, fromRow, fromCol, move.row, move.col);
         } else {
             lastMove = {
                 type: 'wall',
@@ -584,6 +628,7 @@
                 player: playerIdx,
                 wallGlowTurns: 3
             };
+            startWallFade(move.row, move.col, move.orientation);
         }
     }
 
@@ -834,7 +879,14 @@
                     ctx.shadowColor = wallColor;
                     ctx.shadowBlur = 8;
                 }
+                // D3: Wall fade-in
+                if (wallFade && wallFade.row === w.row && wallFade.col === w.col &&
+                    wallFade.orientation === w.orientation) {
+                    const elapsed = performance.now() - wallFade.startTime;
+                    ctx.globalAlpha = Math.min(1, elapsed / wallFade.duration);
+                }
                 _drawWall(ctx, w.row, w.col, w.orientation, wallColor, wallWidth);
+                ctx.globalAlpha = 1;
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
             }
@@ -854,8 +906,22 @@
                 BoardRenderer.drawPath(ctx, state, 1, COLORS.pathP2);
             }
 
-            _drawPawn(ctx, state.players[0].row, state.players[0].col, COLORS.p1, 'P1');
-            _drawPawn(ctx, state.players[1].row, state.players[1].col, COLORS.p2, 'P2');
+            // D2: Draw pawns with animation interpolation
+            for (let pi = 0; pi < 2; pi++) {
+                const p = state.players[pi];
+                const color = pi === 0 ? COLORS.p1 : COLORS.p2;
+                const label = 'P' + (pi + 1);
+                if (pawnAnim && pawnAnim.player === pi) {
+                    const elapsed = performance.now() - pawnAnim.startTime;
+                    const t = Math.min(1, elapsed / pawnAnim.duration);
+                    const e = easeOut(t);
+                    const animRow = pawnAnim.fromRow + (pawnAnim.toRow - pawnAnim.fromRow) * e;
+                    const animCol = pawnAnim.fromCol + (pawnAnim.toCol - pawnAnim.fromCol) * e;
+                    _drawPawn(ctx, animRow, animCol, color, label);
+                } else {
+                    _drawPawn(ctx, p.row, p.col, color, label);
+                }
+            }
 
             drawGoalIndicators(ctx, COLORS);
         }

@@ -135,8 +135,18 @@ header h1 {
 
 #theme-toggle:hover { border-color: var(--accent); }
 
-.screen { display: none; }
-.screen.active { display: block; }
+/* Screen transitions */
+.screen {
+    display: none;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.screen.active {
+    display: block;
+    opacity: 1;
+    transform: none;
+}
 .hidden { display: none !important; }
 
 h2 {

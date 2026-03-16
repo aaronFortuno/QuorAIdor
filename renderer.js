@@ -54,8 +54,9 @@ const BoardRenderer = (() => {
     }
 
     function drawPawn(ctx, row, col, color, label) {
-        const x = cellX(col) + CELL / 2;
-        const y = cellY(row) + CELL / 2;
+        // Support fractional row/col for animation interpolation
+        const x = PAD + col * (CELL + GAP) + CELL / 2;
+        const y = PAD + row * (CELL + GAP) + CELL / 2;
         ctx.beginPath();
         ctx.arc(x, y, CELL * 0.35, 0, Math.PI * 2);
         ctx.fillStyle = color;

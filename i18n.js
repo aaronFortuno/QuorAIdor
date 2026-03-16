@@ -81,7 +81,13 @@ const I18n = (() => {
             rulesTip2: 'Intenta avançar ràpidament mantenint opcions de camins alternatius.',
             rulesTip3: 'Vigila quants murs li queden al teu oponent — si no en té, avança sense por!',
             youMoveDown: 'Tu mous cap avall ↓',
-            youMoveUp: 'Tu mous cap amunt ↑'
+            youMoveUp: 'Tu mous cap amunt ↑',
+            continueGame: 'Continuar Partida',
+            confirmExitTitle: 'Partida en curs',
+            confirmExitMsg: 'Vols sortir de la partida?',
+            saveAndExit: 'Guardar i sortir',
+            discardAndExit: 'Descartar i sortir',
+            cancel: 'Cancel·lar'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -164,7 +170,13 @@ const I18n = (() => {
             rulesTip2: 'Intenta avanzar rápidamente manteniendo opciones de caminos alternativos.',
             rulesTip3: '¡Vigila cuántos muros le quedan a tu oponente — si no tiene, avanza sin miedo!',
             youMoveDown: 'Tú mueves hacia abajo ↓',
-            youMoveUp: 'Tú mueves hacia arriba ↑'
+            youMoveUp: 'Tú mueves hacia arriba ↑',
+            continueGame: 'Continuar Partida',
+            confirmExitTitle: 'Partida en curso',
+            confirmExitMsg: '¿Quieres salir de la partida?',
+            saveAndExit: 'Guardar y salir',
+            discardAndExit: 'Descartar y salir',
+            cancel: 'Cancelar'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -247,7 +259,13 @@ const I18n = (() => {
             rulesTip2: 'Try to advance quickly while keeping alternative path options open.',
             rulesTip3: 'Watch how many walls your opponent has left — if they have none, advance fearlessly!',
             youMoveDown: 'You move downward ↓',
-            youMoveUp: 'You move upward ↑'
+            youMoveUp: 'You move upward ↑',
+            continueGame: 'Continue Game',
+            confirmExitTitle: 'Game in progress',
+            confirmExitMsg: 'Do you want to leave the game?',
+            saveAndExit: 'Save & Exit',
+            discardAndExit: 'Discard & Exit',
+            cancel: 'Cancel'
         }
     };
 

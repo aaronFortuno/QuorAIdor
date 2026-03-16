@@ -50,6 +50,7 @@
                     <button class="toggle-btn" data-depth="4" data-i18n="expert" title="Depth 4 — Very strong, slower moves">Expert</button>
                 </div>
             </div>
+            <button id="continue-btn" class="primary-btn hidden" data-i18n="continueGame">Continuar Partida</button>
             <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
             <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
                 <button id="how-to-play-btn" class="secondary-btn" data-i18n="howToPlay">Com jugar</button>
@@ -123,6 +124,18 @@
                 <div id="game-over-stats"></div>
                 <button id="rematch-btn" class="primary-btn" data-i18n="rematch">Revenja</button>
                 <button id="modal-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>
+            </div>
+        </div>
+
+        <div id="confirm-exit-modal" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="confirm-exit-title" data-i18n="confirmExitTitle">Game in progress</h2>
+                <p data-i18n="confirmExitMsg">Do you want to leave the game?</p>
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
+                    <button id="save-exit-btn" class="primary-btn" data-i18n="saveAndExit">Save & Exit</button>
+                    <button id="discard-exit-btn" class="secondary-btn" data-i18n="discardAndExit">Discard & Exit</button>
+                    <button id="cancel-exit-btn" class="secondary-btn" data-i18n="cancel">Cancel</button>
+                </div>
             </div>
         </div>
 

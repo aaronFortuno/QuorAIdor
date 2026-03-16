@@ -38,6 +38,108 @@
     let browsingHistory = false;
     let browseIndex = -1; // -1 means showing live state
 
+    // H: Save/load game state
+    const LS_GAME_STATE = 'qouraid-game-state';
+
+    function checkContinueButton() {
+        if (hasSavedGame()) {
+            $('continue-btn').classList.remove('hidden');
+        } else {
+            $('continue-btn').classList.add('hidden');
+        }
+    }
+
+    function autoSaveGame() {
+        if (!state || state.gameOver || aiVsAiMode) return;
+        try {
+            const saveData = {
+                stateHistory: stateHistory,
+                humanPlayer: humanPlayer,
+                aiPlayer: aiPlayer,
+                hvhMode: hvhMode,
+                gameMode: gameMode,
+                usingTrainedWeights: usingTrainedWeights,
+                positionCounts: Array.from(positionCounts.entries())
+            };
+            localStorage.setItem(LS_GAME_STATE, JSON.stringify(saveData));
+        } catch (e) {
+            console.warn('Could not auto-save game:', e);
+        }
+    }
+
+    function clearSavedGame() {
+        localStorage.removeItem(LS_GAME_STATE);
+        $('continue-btn').classList.add('hidden');
+    }
+
+    function hasSavedGame() {
+        return localStorage.getItem(LS_GAME_STATE) !== null;
+    }
+
+    function loadSavedGame() {
+        try {
+            const raw = localStorage.getItem(LS_GAME_STATE);
+            if (!raw) return false;
+            const data = JSON.parse(raw);
+            if (!data.stateHistory || data.stateHistory.length === 0) return false;
+
+            stateHistory = data.stateHistory.map(s => {
+                // Rebuild edges and wallSet from walls
+                const st = QuoridorGame.cloneState(s);
+                return st;
+            });
+            state = QuoridorGame.cloneState(stateHistory[stateHistory.length - 1]);
+            humanPlayer = data.humanPlayer;
+            aiPlayer = data.aiPlayer;
+            hvhMode = data.hvhMode || false;
+            gameMode = data.gameMode || 'vsAI';
+            usingTrainedWeights = data.usingTrainedWeights || false;
+            positionCounts.clear();
+            if (data.positionCounts) {
+                for (const [k, v] of data.positionCounts) {
+                    positionCounts.set(k, v);
+                }
+            }
+
+            if (usingTrainedWeights) {
+                QuoridorAI.loadTrainedWeights();
+            }
+
+            // Set labels
+            if (hvhMode) {
+                $('p1-info').querySelector('.player-label').textContent = I18n.t('player1');
+                $('p2-info').querySelector('.player-label').textContent = I18n.t('player2');
+                $('analysis-info').style.display = 'none';
+                $('eval-bar-vertical').style.display = 'none';
+                $('eval-detail').style.display = 'none';
+            } else {
+                const p1Label = humanPlayer === 0 ? I18n.t('you') : I18n.t('ai');
+                const p2Label = humanPlayer === 1 ? I18n.t('you') : I18n.t('ai');
+                $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + p1Label + ')';
+                $('p2-info').querySelector('.player-label').textContent = I18n.t('player2') + ' (' + p2Label + ')';
+                $('analysis-info').style.display = '';
+                $('eval-bar-vertical').style.display = '';
+                $('eval-detail').style.display = '';
+            }
+
+            lastMove = null;
+            actionMode = 'move';
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelector('.mode-btn[data-mode="move"]').classList.add('selected');
+
+            updateTrainedBadge();
+            showScreen('game-screen');
+            updateValidMoves();
+            updateUI();
+            draw();
+            return true;
+        } catch (e) {
+            console.warn('Could not load saved game:', e);
+            clearSavedGame();
+            return false;
+        }
+    }
+
     const $ = id => document.getElementById(id);
 
     function positionKey(st) {
@@ -168,6 +270,10 @@
         });
     });
 
+    $('continue-btn').addEventListener('click', () => {
+        loadSavedGame();
+    });
+
     $('start-btn').addEventListener('click', () => {
         if (gameMode === 'aiVsAi') {
             startAIvsAI();
@@ -183,10 +289,40 @@
         else startNewGame();
     });
     $('back-menu-btn').addEventListener('click', () => {
+        if (state && !state.gameOver && !aiVsAiMode) {
+            // Show confirmation modal
+            $('confirm-exit-modal').classList.remove('hidden');
+        } else {
+            aiVsAiRunning = false;
+            aiVsAiMode = false;
+            hvhMode = false;
+            showScreen('menu-screen');
+            checkContinueButton();
+        }
+    });
+
+    $('save-exit-btn').addEventListener('click', () => {
+        autoSaveGame();
+        $('confirm-exit-modal').classList.add('hidden');
         aiVsAiRunning = false;
         aiVsAiMode = false;
         hvhMode = false;
         showScreen('menu-screen');
+        checkContinueButton();
+    });
+
+    $('discard-exit-btn').addEventListener('click', () => {
+        clearSavedGame();
+        $('confirm-exit-modal').classList.add('hidden');
+        aiVsAiRunning = false;
+        aiVsAiMode = false;
+        hvhMode = false;
+        showScreen('menu-screen');
+        checkContinueButton();
+    });
+
+    $('cancel-exit-btn').addEventListener('click', () => {
+        $('confirm-exit-modal').classList.add('hidden');
     });
     $('rematch-btn').addEventListener('click', () => {
         if (hvhMode) startHvHGame();
@@ -654,6 +790,7 @@
         updateValidMoves();
         updateUI();
         draw();
+        autoSaveGame();
 
         if (state.gameOver || checkDrawConditions()) {
             showGameOver();
@@ -701,6 +838,7 @@
             updateValidMoves();
             updateUI();
             draw();
+            autoSaveGame();
 
             if (state.gameOver || checkDrawConditions()) {
                 showGameOver();
@@ -736,6 +874,7 @@
             I18n.t('wallsUsed') + ' - P1: ' + (QuoridorGame.TOTAL_WALLS - state.players[0].walls) +
             ' | P2: ' + (QuoridorGame.TOTAL_WALLS - state.players[1].walls);
         $('game-over-modal').classList.remove('hidden');
+        clearSavedGame();
     }
 
     function updateUI() {
@@ -1072,6 +1211,7 @@
     initLang();
     restoreSettings();
     updateDirectionHint();
+    checkContinueButton();
     initMobileTabs();
     draw();
 })();

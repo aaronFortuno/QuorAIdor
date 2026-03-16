@@ -956,8 +956,51 @@
         }
     }
 
+    // E2: Mobile tabs for right panel
+    function initMobileTabs() {
+        if (window.innerWidth > 600) return;
+        const rightPanel = $('right-panel');
+        if (rightPanel.querySelector('.mobile-tabs')) return;
+
+        const tabBar = document.createElement('div');
+        tabBar.className = 'mobile-tabs';
+        const tabs = [
+            { id: 'tab-info', label: 'Info', target: 'info-section' },
+            { id: 'tab-moves', label: 'Moves', target: 'move-list' },
+            { id: 'tab-analysis', label: 'Analysis', target: 'analysis-info' }
+        ];
+
+        // Move info section to right panel for mobile
+        const infoSection = $('info-section');
+        const infoClone = infoSection;
+
+        tabs.forEach((t, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'mobile-tab' + (i === 0 ? ' active' : '');
+            btn.textContent = t.label;
+            btn.dataset.target = t.target;
+            btn.addEventListener('click', () => {
+                tabBar.querySelectorAll('.mobile-tab').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                // Show/hide sections
+                tabs.forEach(tab => {
+                    const el = $(tab.target);
+                    if (el) el.style.display = tab.target === t.target ? '' : 'none';
+                });
+            });
+            tabBar.appendChild(btn);
+        });
+
+        rightPanel.insertBefore(tabBar, rightPanel.firstChild);
+    }
+
+    window.addEventListener('resize', () => {
+        initMobileTabs();
+    });
+
     initTheme();
     initLang();
     restoreSettings();
+    initMobileTabs();
     draw();
 })();

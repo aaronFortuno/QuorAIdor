@@ -512,3 +512,115 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
         max-width: 400px;
     }
 }
+
+/* Mobile responsive layout */
+@media (max-width: 600px) {
+    header h1 { font-size: 1.6rem; }
+    .subtitle { font-size: 0.85rem; }
+
+    #game-layout {
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    #left-panel {
+        width: 100%;
+        max-width: none;
+        order: 1;
+    }
+    #board-area {
+        order: 2;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+    #board-canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+
+    /* Eval bar: horizontal on mobile */
+    #eval-bar-vertical {
+        order: 0;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        max-width: 400px;
+    }
+    #eval-bar {
+        height: 20px;
+        width: 100%;
+        flex-direction: row;
+        border-radius: 4px;
+    }
+    #eval-fill-p2 {
+        height: 100%;
+        width: 50%;
+        transition: width 0.5s ease;
+    }
+    #eval-fill-p1 {
+        height: 100%;
+        width: auto;
+        transition: width 0.5s ease;
+    }
+    #eval-score {
+        min-width: 40px;
+        text-align: center;
+    }
+    .eval-label { font-size: 0.6rem; }
+
+    /* Right panel as collapsible tabs */
+    #right-panel {
+        width: 100%;
+        max-width: none;
+        order: 3;
+    }
+
+    /* Tab navigation for right panel sections */
+    .mobile-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+    .mobile-tab {
+        flex: 1;
+        padding: 6px 8px;
+        border: 1px solid var(--border);
+        background: var(--btn-bg);
+        color: var(--text-muted);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        text-align: center;
+    }
+    .mobile-tab.active {
+        border-color: var(--accent);
+        background: var(--btn-selected-bg);
+        color: var(--text);
+    }
+
+    .mode-btn {
+        padding: 12px 8px;
+        font-size: 1rem;
+    }
+
+    .toggle-group { flex-wrap: wrap; }
+    .toggle-btn { padding: 8px 14px; font-size: 0.9rem; }
+    .primary-btn { width: 100%; }
+    .secondary-btn { font-size: 0.85rem; }
+
+    #game-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        justify-content: center;
+    }
+    #game-buttons .secondary-btn {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    #info-section { padding: 8px; }
+}

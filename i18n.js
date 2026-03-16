@@ -65,7 +65,21 @@ const I18n = (() => {
             p1Wins: 'Jugador 1 Guanya!',
             p2Wins: 'Jugador 2 Guanya!',
             p1ReachedGoal: 'El Jugador 1 ha arribat a la meta!',
-            p2ReachedGoal: 'El Jugador 2 ha arribat a la meta!'
+            p2ReachedGoal: 'El Jugador 2 ha arribat a la meta!',
+            howToPlay: 'Com jugar',
+            close: 'Tancar',
+            rulesGoalTitle: 'Objectiu',
+            rulesGoalText: 'Sigues el primer a arribar al costat oposat del tauler. El Jugador 1 (blau) comença a dalt i ha d\'arribar a baix. El Jugador 2 (vermell) comença a baix i ha d\'arribar a dalt.',
+            rulesMovementTitle: 'Moviment',
+            rulesMovementText: 'A cada torn, pots moure el teu peó una casella en qualsevol direcció ortogonal (amunt, avall, esquerra, dreta). No pots moure en diagonal.',
+            rulesWallsTitle: 'Murs',
+            rulesWallsText: 'En lloc de moure, pots col\u00B7locar un mur. Cada jugador té 10 murs. Un mur ocupa 2 caselles de llarg i bloqueja el pas. No pots col\u00B7locar un mur que tanqui completament el camí d\'un jugador cap a la seva meta.',
+            rulesJumpsTitle: 'Salts',
+            rulesJumpsText: 'Si el teu peó és adjacent a l\'oponent, pots saltar per sobre si la casella de darrere és lliure. Si un mur bloqueja el salt, pots moure en diagonal al costat de l\'oponent.',
+            rulesTipsTitle: 'Consells',
+            rulesTip1: 'Guarda els teus murs per moments crítics — no els malgastis al principi.',
+            rulesTip2: 'Intenta avançar ràpidament mantenint opcions de camins alternatius.',
+            rulesTip3: 'Vigila quants murs li queden al teu oponent — si no en té, avança sense por!'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -132,7 +146,21 @@ const I18n = (() => {
             p1Wins: '¡Jugador 1 Gana!',
             p2Wins: '¡Jugador 2 Gana!',
             p1ReachedGoal: '¡El Jugador 1 ha llegado a la meta!',
-            p2ReachedGoal: '¡El Jugador 2 ha llegado a la meta!'
+            p2ReachedGoal: '¡El Jugador 2 ha llegado a la meta!',
+            howToPlay: 'Cómo jugar',
+            close: 'Cerrar',
+            rulesGoalTitle: 'Objetivo',
+            rulesGoalText: 'Sé el primero en llegar al lado opuesto del tablero. El Jugador 1 (azul) empieza arriba y debe llegar abajo. El Jugador 2 (rojo) empieza abajo y debe llegar arriba.',
+            rulesMovementTitle: 'Movimiento',
+            rulesMovementText: 'En cada turno, puedes mover tu peón una casilla en cualquier dirección ortogonal (arriba, abajo, izquierda, derecha). No puedes moverte en diagonal.',
+            rulesWallsTitle: 'Muros',
+            rulesWallsText: 'En lugar de moverte, puedes colocar un muro. Cada jugador tiene 10 muros. Un muro ocupa 2 casillas de largo y bloquea el paso. No puedes colocar un muro que cierre completamente el camino de un jugador hacia su meta.',
+            rulesJumpsTitle: 'Saltos',
+            rulesJumpsText: 'Si tu peón está adyacente al oponente, puedes saltar por encima si la casilla de detrás está libre. Si un muro bloquea el salto, puedes moverte en diagonal al lado del oponente.',
+            rulesTipsTitle: 'Consejos',
+            rulesTip1: 'Guarda tus muros para momentos críticos — no los malgastes al principio.',
+            rulesTip2: 'Intenta avanzar rápidamente manteniendo opciones de caminos alternativos.',
+            rulesTip3: '¡Vigila cuántos muros le quedan a tu oponente — si no tiene, avanza sin miedo!'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -199,7 +227,21 @@ const I18n = (() => {
             p1Wins: 'Player 1 Wins!',
             p2Wins: 'Player 2 Wins!',
             p1ReachedGoal: 'Player 1 reached the goal!',
-            p2ReachedGoal: 'Player 2 reached the goal!'
+            p2ReachedGoal: 'Player 2 reached the goal!',
+            howToPlay: 'How to Play',
+            close: 'Close',
+            rulesGoalTitle: 'Objective',
+            rulesGoalText: 'Be the first to reach the opposite side of the board. Player 1 (blue) starts at the top and must reach the bottom. Player 2 (red) starts at the bottom and must reach the top.',
+            rulesMovementTitle: 'Movement',
+            rulesMovementText: 'On each turn, you can move your pawn one cell in any orthogonal direction (up, down, left, right). You cannot move diagonally.',
+            rulesWallsTitle: 'Walls',
+            rulesWallsText: 'Instead of moving, you can place a wall. Each player has 10 walls. A wall spans 2 cells long and blocks movement. You cannot place a wall that completely blocks a player\'s path to their goal.',
+            rulesJumpsTitle: 'Jumps',
+            rulesJumpsText: 'If your pawn is adjacent to the opponent, you can jump over them if the cell behind is free. If a wall blocks the jump, you can move diagonally to the side of the opponent.',
+            rulesTipsTitle: 'Tips',
+            rulesTip1: 'Save your walls for critical moments — don\'t waste them early.',
+            rulesTip2: 'Try to advance quickly while keeping alternative path options open.',
+            rulesTip3: 'Watch how many walls your opponent has left — if they have none, advance fearlessly!'
         }
     };
 

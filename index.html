@@ -50,7 +50,8 @@
                 </div>
             </div>
             <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
-            <div style="margin-top: 12px;">
+            <div style="margin-top: 12px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                <button id="how-to-play-btn" class="secondary-btn" data-i18n="howToPlay">Com jugar</button>
                 <a href="training.html" class="secondary-btn" data-i18n="trainingArena" style="text-decoration:none; display:inline-block;">Training Arena</a>
             </div>
         </div>
@@ -121,6 +122,14 @@
                 <div id="game-over-stats"></div>
                 <button id="rematch-btn" class="primary-btn" data-i18n="rematch">Revenja</button>
                 <button id="modal-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>
+            </div>
+        </div>
+
+        <div id="rules-modal" class="modal hidden">
+            <div class="modal-content rules-content">
+                <h2 data-i18n="howToPlay">How to Play</h2>
+                <div id="rules-body"></div>
+                <button id="rules-close-btn" class="primary-btn" style="margin-top: 16px;" data-i18n="close">Close</button>
             </div>
         </div>
     </div>

@@ -956,6 +956,37 @@
         }
     }
 
+    // F: How to Play modal
+    $('how-to-play-btn').addEventListener('click', showRules);
+    $('rules-close-btn').addEventListener('click', () => {
+        $('rules-modal').classList.add('hidden');
+    });
+
+    function showRules() {
+        const body = $('rules-body');
+        const sections = [
+            { title: 'rulesGoalTitle', text: 'rulesGoalText' },
+            { title: 'rulesMovementTitle', text: 'rulesMovementText' },
+            { title: 'rulesWallsTitle', text: 'rulesWallsText' },
+            { title: 'rulesJumpsTitle', text: 'rulesJumpsText' },
+        ];
+
+        let html = '';
+        for (const s of sections) {
+            html += '<div class="rules-section"><h3>' + I18n.t(s.title) + '</h3>';
+            html += '<p>' + I18n.t(s.text) + '</p></div>';
+        }
+
+        html += '<div class="rules-section"><h3>' + I18n.t('rulesTipsTitle') + '</h3>';
+        html += '<div class="rules-tip">' + I18n.t('rulesTip1') + '</div>';
+        html += '<div class="rules-tip">' + I18n.t('rulesTip2') + '</div>';
+        html += '<div class="rules-tip">' + I18n.t('rulesTip3') + '</div>';
+        html += '</div>';
+
+        body.innerHTML = html;
+        $('rules-modal').classList.remove('hidden');
+    }
+
     // E2: Mobile tabs for right panel
     function initMobileTabs() {
         if (window.innerWidth > 600) return;

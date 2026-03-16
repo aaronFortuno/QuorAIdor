@@ -496,6 +496,38 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
     letter-spacing: 0.5px;
 }
 
+/* Rules modal */
+.rules-content {
+    max-width: 550px;
+    text-align: left;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+.rules-content h2 { text-align: center; }
+.rules-section {
+    margin-bottom: 16px;
+}
+.rules-section h3 {
+    color: var(--accent);
+    font-size: 1rem;
+    margin-bottom: 6px;
+}
+.rules-section p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+}
+.rules-tip {
+    background: var(--btn-bg);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
 [data-theme="light"] .trained-badge {
     background: rgba(46, 125, 50, 0.1);
     color: #2e7d32;

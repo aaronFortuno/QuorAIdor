@@ -187,9 +187,14 @@
     }
 
     $('theme-toggle').addEventListener('click', () => {
-        const isNowLight = BoardRenderer.toggleTheme();
-        $('theme-icon').textContent = isNowLight ? '\uD83C\uDF19' : '\u2600\uFE0F';
-        draw();
+        // I3: Fade canvas during theme switch
+        canvas.style.opacity = '0';
+        setTimeout(() => {
+            const isNowLight = BoardRenderer.toggleTheme();
+            $('theme-icon').textContent = isNowLight ? '\uD83C\uDF19' : '\u2600\uFE0F';
+            draw();
+            canvas.style.opacity = '1';
+        }, 200);
     });
 
     document.querySelectorAll('.lang-btn').forEach(btn => {

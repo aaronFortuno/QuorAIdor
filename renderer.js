@@ -21,8 +21,8 @@ const BoardRenderer = (() => {
             cellHover:   style.getPropertyValue('--btn-selected-bg').trim() || '#1e2a4a',
             cellValid:   'rgba(79, 195, 247, 0.2)',
             gridLine:    style.getPropertyValue('--border').trim()    || '#0f3460',
-            p1:          '#4fc3f7',
-            p2:          '#e94560',
+            p1:          style.getPropertyValue('--color-p1').trim() || '#4fc3f7',
+            p2:          style.getPropertyValue('--color-p2').trim() || '#e94560',
             wallPlaced:  style.getPropertyValue('--text').trim()      || '#e0e0e0',
             wallPreview: 'rgba(233, 69, 96, 0.5)',
             wallInvalid: 'rgba(255, 0, 0, 0.3)',
@@ -57,12 +57,24 @@ const BoardRenderer = (() => {
         // Support fractional row/col for animation interpolation
         const x = PAD + col * (CELL + GAP) + CELL / 2;
         const y = PAD + row * (CELL + GAP) + CELL / 2;
+
+        // Shadow for depth
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.4)';
+        ctx.shadowBlur = 6;
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+
         ctx.beginPath();
         ctx.arc(x, y, CELL * 0.35, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
+        ctx.restore();
+
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, CELL * 0.35, 0, Math.PI * 2);
         ctx.stroke();
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 14px sans-serif';

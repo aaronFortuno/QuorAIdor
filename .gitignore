@@ -4,3 +4,6 @@
 *.log
 node_modules/
 dist/
+nul
+*.sqlite
+*.db

@@ -487,7 +487,11 @@ const QuoridorGame = (() => {
         getValidMoves, getValidWallPlacements, isValidWallPlacement,
         bfsShortestPath, bfsWithJumps, hasPath, wallBlocksEdge,
         applyMove, getAllLegalActions,
-        // New: expose edge utilities for external use
         buildEdgesFromWalls, edgeBlocked, addWallEdges, removeWallEdges
     };
 })();
+
+// Export for Node.js
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = QuoridorGame;
+}

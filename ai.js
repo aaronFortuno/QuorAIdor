@@ -433,15 +433,22 @@ const QuoridorAI = (() => {
         }
     }
 
-    function getPositionSummary(state) {
+    function getPositionSummary(state, humanPlayerIdx) {
         const analysis = getAnalysis(state);
         const lines = [];
         const phaseNames = ['Opening', 'Midgame', 'Endgame'];
 
+        // Contextual labels: use You/AI when humanPlayer is set
+        function label(pidx) {
+            if (humanPlayerIdx === undefined || humanPlayerIdx < 0) return 'P' + (pidx + 1);
+            return pidx === humanPlayerIdx ? I18n.t('you') : I18n.t('ai');
+        }
+
         if (analysis.advantage === 'Even') {
             lines.push(I18n.t('positionBalanced'));
         } else {
-            lines.push(I18n.t('positionAdvantage', { player: analysis.advantage }));
+            const advPlayer = analysis.advantage === 'P1' ? label(0) : label(1);
+            lines.push(I18n.t('positionAdvantage', { player: advPlayer }));
         }
 
         lines.push(I18n.t('p1Path', { steps: analysis.distP1 }) + ' | ' +
@@ -451,13 +458,13 @@ const QuoridorAI = (() => {
 
         const tempo = analysis.distP2 - analysis.distP1;
         if (Math.abs(tempo) >= 2) {
-            lines.push(I18n.t('strongTempo', { player: tempo > 0 ? 'P1' : 'P2' }));
+            lines.push(I18n.t('strongTempo', { player: tempo > 0 ? label(0) : label(1) }));
         }
 
         if (analysis.wallsP1 === 0 && analysis.wallsP2 > 0) {
-            lines.push(I18n.t('noWallsVulnerable', { player: 'P1' }));
+            lines.push(I18n.t('noWallsVulnerable', { player: label(0) }));
         } else if (analysis.wallsP2 === 0 && analysis.wallsP1 > 0) {
-            lines.push(I18n.t('noWallsVulnerable', { player: 'P2' }));
+            lines.push(I18n.t('noWallsVulnerable', { player: label(1) }));
         }
 
         return lines.join('\n');

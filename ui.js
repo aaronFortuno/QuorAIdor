@@ -34,6 +34,9 @@
     let pawnAnim = null; // { player, fromRow, fromCol, toRow, toCol, startTime, duration }
     // D3: Wall fade-in
     let wallFade = null; // { row, col, orientation, startTime, duration }
+    // G2: Move history navigation
+    let browsingHistory = false;
+    let browseIndex = -1; // -1 means showing live state
 
     const $ = id => document.getElementById(id);
 
@@ -131,10 +134,20 @@
         });
     });
 
+    function updateDirectionHint() {
+        const hint = $('direction-hint');
+        if (!hint) return;
+        const colorBtn = document.querySelector('[data-color].selected');
+        if (!colorBtn) return;
+        const color = parseInt(colorBtn.dataset.color);
+        hint.textContent = color === 1 ? I18n.t('youMoveDown') : I18n.t('youMoveUp');
+    }
+
     document.querySelectorAll('[data-color]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
             btn.classList.add('selected');
+            updateDirectionHint();
         });
     });
 
@@ -777,19 +790,45 @@
         const list = $('move-list');
         list.innerHTML = '';
         const moves = state.moveHistory;
+        const currentIdx = browsingHistory ? browseIndex : moves.length;
         for (let i = 0; i < moves.length; i += 2) {
             const entry = document.createElement('div');
             entry.className = 'move-entry';
             const num = Math.floor(i / 2) + 1;
             let html = '<span class="move-number">' + num + '.</span>';
-            html += '<span class="move-p1">' + moves[i] + '</span>';
+            const p1Active = (i + 1) === currentIdx || (i === currentIdx - 1 && currentIdx % 2 === 1);
+            const p2Active = (i + 2) === currentIdx || (i + 1 === currentIdx - 1);
+            html += '<span class="move-p1' + (i < currentIdx ? '' : ' move-future') + '">' + moves[i] + '</span>';
             if (i + 1 < moves.length) {
-                html += '<span class="move-p2">' + moves[i + 1] + '</span>';
+                html += '<span class="move-p2' + (i + 1 < currentIdx ? '' : ' move-future') + '">' + moves[i + 1] + '</span>';
             }
             entry.innerHTML = html;
+            entry.style.cursor = 'pointer';
+            const moveIdx = i;
+            entry.addEventListener('click', () => navigateToMove(moveIdx + 1));
             list.appendChild(entry);
         }
         list.scrollTop = list.scrollHeight;
+    }
+
+    function navigateToMove(moveIndex) {
+        if (!stateHistory || stateHistory.length <= 1) return;
+        const targetIdx = Math.max(0, Math.min(moveIndex, stateHistory.length - 1));
+        browsingHistory = targetIdx < stateHistory.length - 1;
+        browseIndex = targetIdx;
+        const browseState = QuoridorGame.cloneState(stateHistory[targetIdx]);
+        // Temporarily show the browse state
+        const realState = state;
+        state = browseState;
+        updateMoveHistory();
+        draw();
+        state = realState;
+        if (!browsingHistory) {
+            browseIndex = -1;
+            updateValidMoves();
+            updateUI();
+            draw();
+        }
     }
 
     function updateAnalysis() {
@@ -807,7 +846,7 @@
         } else {
             $('best-move-hint').textContent = '';
         }
-        $('position-summary').textContent = QuoridorAI.getPositionSummary(state);
+        $('position-summary').textContent = QuoridorAI.getPositionSummary(state, humanPlayer);
     }
 
     function draw() {
@@ -1032,6 +1071,7 @@
     initTheme();
     initLang();
     restoreSettings();
+    updateDirectionHint();
     initMobileTabs();
     draw();
 })();

@@ -79,7 +79,9 @@ const I18n = (() => {
             rulesTipsTitle: 'Consells',
             rulesTip1: 'Guarda els teus murs per moments crítics — no els malgastis al principi.',
             rulesTip2: 'Intenta avançar ràpidament mantenint opcions de camins alternatius.',
-            rulesTip3: 'Vigila quants murs li queden al teu oponent — si no en té, avança sense por!'
+            rulesTip3: 'Vigila quants murs li queden al teu oponent — si no en té, avança sense por!',
+            youMoveDown: 'Tu mous cap avall ↓',
+            youMoveUp: 'Tu mous cap amunt ↑'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -160,7 +162,9 @@ const I18n = (() => {
             rulesTipsTitle: 'Consejos',
             rulesTip1: 'Guarda tus muros para momentos críticos — no los malgastes al principio.',
             rulesTip2: 'Intenta avanzar rápidamente manteniendo opciones de caminos alternativos.',
-            rulesTip3: '¡Vigila cuántos muros le quedan a tu oponente — si no tiene, avanza sin miedo!'
+            rulesTip3: '¡Vigila cuántos muros le quedan a tu oponente — si no tiene, avanza sin miedo!',
+            youMoveDown: 'Tú mueves hacia abajo ↓',
+            youMoveUp: 'Tú mueves hacia arriba ↑'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -241,7 +245,9 @@ const I18n = (() => {
             rulesTipsTitle: 'Tips',
             rulesTip1: 'Save your walls for critical moments — don\'t waste them early.',
             rulesTip2: 'Try to advance quickly while keeping alternative path options open.',
-            rulesTip3: 'Watch how many walls your opponent has left — if they have none, advance fearlessly!'
+            rulesTip3: 'Watch how many walls your opponent has left — if they have none, advance fearlessly!',
+            youMoveDown: 'You move downward ↓',
+            youMoveUp: 'You move upward ↑'
         }
     };
 

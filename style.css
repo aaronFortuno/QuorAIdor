@@ -421,6 +421,14 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
 
 .move-p1 { color: #4fc3f7; }
 .move-p2 { color: #e94560; }
+.move-future { opacity: 0.35; }
+.direction-hint {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-top: 4px;
+}
+.move-entry { cursor: pointer; }
+.move-entry:hover { background: var(--active-player-bg); }
 
 #analysis-info {
     margin-top: 8px;

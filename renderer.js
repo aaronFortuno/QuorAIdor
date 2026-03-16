@@ -13,9 +13,15 @@ const BoardRenderer = (() => {
     function cellX(col) { return PAD + col * (CELL + GAP); }
     function cellY(row) { return PAD + row * (CELL + GAP); }
 
+    let _cachedColors = null;
+    let _colorsDirty = true;
+
+    function invalidateColors() { _colorsDirty = true; _cachedColors = null; }
+
     function getColors() {
+        if (_cachedColors && !_colorsDirty) return _cachedColors;
         const style = getComputedStyle(document.documentElement);
-        return {
+        _cachedColors = {
             bg:          style.getPropertyValue('--board-bg').trim()  || '#0d1b36',
             cell:        style.getPropertyValue('--cell-bg').trim()   || '#16213e',
             cellHover:   style.getPropertyValue('--btn-selected-bg').trim() || '#1e2a4a',
@@ -30,6 +36,8 @@ const BoardRenderer = (() => {
             pathP2:      'rgba(233, 69, 96, 0.15)',
             coord:       style.getPropertyValue('--coord-color').trim() || '#444'
         };
+        _colorsDirty = false;
+        return _cachedColors;
     }
 
     function drawWall(ctx, row, col, orientation, color, width) {
@@ -178,7 +186,7 @@ const BoardRenderer = (() => {
                 const nc = col + dc;
                 if (nr < 0 || nr >= SIZE || nc < 0 || nc >= SIZE) continue;
                 if (visited[nr][nc]) continue;
-                if (QuoridorGame.wallBlocksEdge(state.walls, row, col, nr, nc)) continue;
+                if (QuoridorGame.edgeBlocked(state.edges, row, col, nr, nc)) continue;
                 // Skip opponent cell in path display (simplified — no jump)
                 if (nr === opp.row && nc === opp.col) continue;
                 visited[nr][nc] = true;
@@ -220,13 +228,14 @@ const BoardRenderer = (() => {
             document.documentElement.setAttribute('data-theme', 'light');
             localStorage.setItem('qouraid-theme', 'light');
         }
+        invalidateColors();
         return !isLight; // returns true if now light
     }
 
     return {
         SIZE, CELL, GAP, PAD, BOARD_PX,
         cellX, cellY,
-        getColors,
+        getColors, invalidateColors,
         drawWall, drawPawn, drawCoordinates, drawGoalIndicators,
         drawBoard, drawPath,
         initTheme, toggleTheme

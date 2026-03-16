@@ -38,6 +38,9 @@
     let browsingHistory = false;
     let browseIndex = -1; // -1 means showing live state
 
+    // R3: Fast valid move lookup
+    let validMovesSet = new Set();
+
     // H: Save/load game state
     const LS_GAME_STATE = 'qouraid-game-state';
 
@@ -570,14 +573,16 @@
     }
 
     function updateValidMoves() {
-        if (!state || state.gameOver) { validMoves = []; return; }
+        if (!state || state.gameOver) { validMoves = []; validMovesSet.clear(); return; }
         const isHumanTurn = hvhMode || (humanPlayer === state.currentPlayer);
-        if (!isHumanTurn) { validMoves = []; return; }
+        if (!isHumanTurn) { validMoves = []; validMovesSet.clear(); return; }
 
         if (actionMode === 'move') {
             validMoves = QuoridorGame.getValidMoves(state, state.currentPlayer);
+            validMovesSet = new Set(validMoves.map(m => m.row * 9 + m.col));
         } else {
             validMoves = [];
+            validMovesSet.clear();
         }
     }
 
@@ -604,31 +609,37 @@
         return null;
     }
 
+    let _mouseMoveRAF = null;
     canvas.addEventListener('mousemove', (e) => {
         if (aiThinking || !state || state.gameOver) return;
-        const rect = canvas.getBoundingClientRect();
-        const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-        const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+        // P10: Throttle to one update per animation frame
+        if (_mouseMoveRAF) return;
+        _mouseMoveRAF = requestAnimationFrame(() => {
+            _mouseMoveRAF = null;
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
 
-        const hit = cellFromPixel(x, y);
-        hoverCell = null;
-        hoverWall = null;
+            const hit = cellFromPixel(x, y);
+            hoverCell = null;
+            hoverWall = null;
 
-        if (hit) {
-            if (hit.type === 'cell' && actionMode === 'move') {
-                hoverCell = hit;
-            } else if (hit.type === 'wall-slot' || hit.type === 'cell') {
-                const r = hit.row;
-                const c = hit.col;
-                const wRow = Math.min(r, SIZE - 2);
-                const wCol = Math.min(c, SIZE - 2);
-                const ori = actionMode === 'wall-h' ? 'h' : 'v';
-                if (actionMode.startsWith('wall')) {
-                    hoverWall = { row: wRow, col: wCol, orientation: ori };
+            if (hit) {
+                if (hit.type === 'cell' && actionMode === 'move') {
+                    hoverCell = hit;
+                } else if (hit.type === 'wall-slot' || hit.type === 'cell') {
+                    const r = hit.row;
+                    const c = hit.col;
+                    const wRow = Math.min(r, SIZE - 2);
+                    const wCol = Math.min(c, SIZE - 2);
+                    const ori = actionMode === 'wall-h' ? 'h' : 'v';
+                    if (actionMode.startsWith('wall')) {
+                        hoverWall = { row: wRow, col: wCol, orientation: ori };
+                    }
                 }
             }
-        }
-        draw();
+            draw();
+        });
     });
 
     canvas.addEventListener('mouseleave', () => {
@@ -666,7 +677,7 @@
         if (!hit) return;
 
         if (actionMode === 'move' && hit.type === 'cell') {
-            const isValid = validMoves.some(m => m.row === hit.row && m.col === hit.col);
+            const isValid = validMovesSet.has(hit.row * 9 + hit.col);
             if (isValid) {
                 applyHumanMove({ type: 'move', row: hit.row, col: hit.col });
             } else {
@@ -1015,15 +1026,15 @@
                 }
 
                 const isHumanTurnDraw = state && !state.gameOver && (hvhMode || state.currentPlayer === humanPlayer);
+                const cellKey = r * 9 + c;
                 if (actionMode === 'move' && isHumanTurnDraw) {
-                    if (validMoves.some(m => m.row === r && m.col === c)) {
+                    if (validMovesSet.has(cellKey)) {
                         color = COLORS.cellValid;
                     }
                 }
 
                 if (hoverCell && hoverCell.row === r && hoverCell.col === c) {
-                    const isValid = validMoves.some(m => m.row === r && m.col === c);
-                    color = isValid ? COLORS.cellHover : COLORS.cell;
+                    color = validMovesSet.has(cellKey) ? COLORS.cellHover : COLORS.cell;
                 }
 
                 ctx.fillStyle = color;

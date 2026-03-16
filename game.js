@@ -137,8 +137,8 @@ const QuoridorGame = (() => {
     function createState() {
         const state = {
             players: [
-                { row: 0, col: 4, walls: TOTAL_WALLS, goalRow: 8 },
-                { row: 8, col: 4, walls: TOTAL_WALLS, goalRow: 0 }
+                { row: 0, col: Math.floor(SIZE / 2), walls: TOTAL_WALLS, goalRow: SIZE - 1 },
+                { row: SIZE - 1, col: Math.floor(SIZE / 2), walls: TOTAL_WALLS, goalRow: 0 }
             ],
             currentPlayer: 0,
             walls: [],

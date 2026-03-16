@@ -273,6 +273,12 @@
      *  EVOLUTIONARY ALGORITHM
      * ================================================================== */
 
+    function scoreFitness(winner, myPlayer, moveRatio) {
+        if (winner === myPlayer) return 1.0 + 0.3 * moveRatio;
+        if (winner === -1) return 0.2;
+        return 0.05 * (1 - moveRatio);
+    }
+
     function tournamentSelect(population, fitnesses, k) {
         let bestIdx = -1;
         let bestFit = -Infinity;
@@ -448,22 +454,9 @@
                     const myPlayer = r.asP1 ? 0 : 1;
                     const oppPlayer = r.asP1 ? 1 : 0;
 
-                    if (r.winner === myPlayer) {
-                        fitnesses[r.gi] += 1.0 + 0.3 * moveRatio;
-                    } else if (r.winner === -1) {
-                        fitnesses[r.gi] += 0.2;
-                    } else {
-                        fitnesses[r.gi] += 0.05 * (1 - moveRatio);
-                    }
+                    fitnesses[r.gi] += scoreFitness(r.winner, myPlayer, moveRatio);
                     gamesCount[r.gi]++;
-
-                    if (r.winner === oppPlayer) {
-                        fitnesses[r.oi] += 1.0 + 0.3 * moveRatio;
-                    } else if (r.winner === -1) {
-                        fitnesses[r.oi] += 0.2;
-                    } else {
-                        fitnesses[r.oi] += 0.05 * (1 - moveRatio);
-                    }
+                    fitnesses[r.oi] += scoreFitness(r.winner, oppPlayer, moveRatio);
                     gamesCount[r.oi]++;
 
                     trainingState.totalGamesPlayed++;
@@ -499,23 +492,11 @@
 
                     const moveRatio = 1 - result.moves / config.maxMoves;
                     const myPlayer = asP1 ? 0 : 1;
-                    if (result.winner === myPlayer) {
-                        fitnesses[gi] += 1.0 + 0.3 * moveRatio;
-                    } else if (result.winner === -1) {
-                        fitnesses[gi] += 0.2;
-                    } else {
-                        fitnesses[gi] += 0.05 * (1 - moveRatio);
-                    }
-                    gamesCount[gi]++;
+                    const oppPlayer = 1 - myPlayer;
 
-                    const oppPlayer = asP1 ? 1 : 0;
-                    if (result.winner === oppPlayer) {
-                        fitnesses[oi] += 1.0 + 0.3 * moveRatio;
-                    } else if (result.winner === -1) {
-                        fitnesses[oi] += 0.2;
-                    } else {
-                        fitnesses[oi] += 0.05 * (1 - moveRatio);
-                    }
+                    fitnesses[gi] += scoreFitness(result.winner, myPlayer, moveRatio);
+                    gamesCount[gi]++;
+                    fitnesses[oi] += scoreFitness(result.winner, oppPlayer, moveRatio);
                     gamesCount[oi]++;
 
                     // Record game (only in sequential mode where we have full history)

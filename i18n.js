@@ -54,7 +54,9 @@ const I18n = (() => {
             draw: 'Taules!',
             drawReason: 'La partida ha acabat en taules per repetició o límit de moviments.',
             showPaths: 'Camins',
-            watchAI: 'Veure IA vs IA'
+            watchAI: 'Veure IA vs IA',
+            resign: 'Rendir-se',
+            youResigned: 'T\'has rendit.'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -110,7 +112,9 @@ const I18n = (() => {
             draw: '¡Tablas!',
             drawReason: 'La partida ha terminado en tablas por repetición o límite de movimientos.',
             showPaths: 'Caminos',
-            watchAI: 'Ver IA vs IA'
+            watchAI: 'Ver IA vs IA',
+            resign: 'Rendirse',
+            youResigned: 'Te has rendido.'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -166,11 +170,20 @@ const I18n = (() => {
             draw: 'Draw!',
             drawReason: 'The game ended in a draw due to repetition or move limit.',
             showPaths: 'Paths',
-            watchAI: 'Watch AI vs AI'
+            watchAI: 'Watch AI vs AI',
+            resign: 'Resign',
+            youResigned: 'You resigned.'
         }
     };
 
-    let currentLang = localStorage.getItem('qouraid-lang') || 'ca';
+    function detectBrowserLang() {
+        const nav = (navigator.language || '').toLowerCase();
+        if (nav.startsWith('ca')) return 'ca';
+        if (nav.startsWith('es')) return 'es';
+        return 'en';
+    }
+
+    let currentLang = localStorage.getItem('qouraid-lang') || detectBrowserLang();
 
     function t(key, params) {
         let str = (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;

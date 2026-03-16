@@ -136,10 +136,18 @@
         }
     });
 
+    $('resign-btn').addEventListener('click', () => {
+        if (!state || state.gameOver || aiThinking || aiVsAiMode) return;
+        state.gameOver = true;
+        state.winner = aiPlayer;
+        showGameOver(true);
+    });
+
     // Toggle shortest path display
     $('paths-btn').addEventListener('click', () => {
         showPaths = !showPaths;
         $('paths-btn').classList.toggle('selected', showPaths);
+        localStorage.setItem('qouraid-paths', showPaths);
         draw();
     });
 
@@ -214,6 +222,26 @@
 
     let usingTrainedWeights = false;
 
+    function restoreSettings() {
+        const savedColor = localStorage.getItem('qouraid-color');
+        if (savedColor) {
+            document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
+            const btn = document.querySelector('[data-color="' + savedColor + '"]');
+            if (btn) btn.classList.add('selected');
+        }
+        const savedDepth = localStorage.getItem('qouraid-depth');
+        if (savedDepth) {
+            document.querySelectorAll('[data-depth]').forEach(b => b.classList.remove('selected'));
+            const btn = document.querySelector('[data-depth="' + savedDepth + '"]');
+            if (btn) btn.classList.add('selected');
+        }
+        const savedPaths = localStorage.getItem('qouraid-paths');
+        if (savedPaths === 'true') {
+            showPaths = true;
+            $('paths-btn').classList.add('selected');
+        }
+    }
+
     function startNewGame() {
         // Stop any running AI vs AI game
         aiVsAiRunning = false;
@@ -227,6 +255,10 @@
         const depthBtn = document.querySelector('[data-depth].selected');
         const depth = parseInt(depthBtn.dataset.depth);
         QuoridorAI.setDepth(depth);
+
+        // Persist settings
+        localStorage.setItem('qouraid-color', colorBtn.dataset.color);
+        localStorage.setItem('qouraid-depth', depthBtn.dataset.depth);
 
         // For Hard (3) and Expert (4): use trained weights if available
         usingTrainedWeights = false;
@@ -452,7 +484,7 @@
         }, 100);
     }
 
-    function showGameOver() {
+    function showGameOver(resigned) {
         const winner = state.winner;
         const isDraw = winner === -1;
         const isHumanWin = !aiVsAiMode && winner === humanPlayer;
@@ -465,9 +497,9 @@
             $('game-over-msg').textContent = (winner === 0 ? I18n.t('player1') : I18n.t('player2')) + ' wins!';
         } else {
             $('game-over-title').textContent = isHumanWin ? I18n.t('youWin') : I18n.t('aiWins');
-            $('game-over-msg').textContent = isHumanWin
-                ? I18n.t('congratulations')
-                : I18n.t('aiReachedGoal');
+            $('game-over-msg').textContent = resigned
+                ? I18n.t('youResigned')
+                : (isHumanWin ? I18n.t('congratulations') : I18n.t('aiReachedGoal'));
         }
 
         $('game-over-stats').innerHTML =
@@ -622,5 +654,6 @@
 
     initTheme();
     initLang();
+    restoreSettings();
     draw();
 })();

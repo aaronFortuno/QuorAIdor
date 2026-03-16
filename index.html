@@ -35,10 +35,10 @@
             <div class="option-group">
                 <label data-i18n="aiDifficulty">Dificultat IA:</label>
                 <div class="toggle-group">
-                    <button class="toggle-btn" data-depth="1" data-i18n="easy">Fàcil</button>
-                    <button class="toggle-btn selected" data-depth="2" data-i18n="medium">Mitjà</button>
-                    <button class="toggle-btn" data-depth="3" data-i18n="hard">Difícil</button>
-                    <button class="toggle-btn" data-depth="4" data-i18n="expert">Expert</button>
+                    <button class="toggle-btn" data-depth="1" data-i18n="easy" title="Depth 1 — Instant moves">Fàcil</button>
+                    <button class="toggle-btn selected" data-depth="2" data-i18n="medium" title="Depth 2 — Fast, good for learning">Mitjà</button>
+                    <button class="toggle-btn" data-depth="3" data-i18n="hard" title="Depth 3 — Strong play, may take a moment">Difícil</button>
+                    <button class="toggle-btn" data-depth="4" data-i18n="expert" title="Depth 4 — Very strong, slower moves">Expert</button>
                 </div>
             </div>
             <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
@@ -74,10 +74,12 @@
 
                 <div id="eval-bar-vertical">
                     <div id="eval-score">0.0</div>
+                    <span class="eval-label eval-label-top">P2</span>
                     <div id="eval-bar">
                         <div id="eval-fill-p2"></div>
                         <div id="eval-fill-p1"></div>
                     </div>
+                    <span class="eval-label eval-label-bottom">P1</span>
                 </div>
 
                 <div id="board-area">
@@ -98,6 +100,7 @@
             </div>
             <div id="game-buttons">
                 <button id="undo-btn" class="secondary-btn" data-i18n="undo">Desfer</button>
+                <button id="resign-btn" class="secondary-btn" data-i18n="resign">Rendir-se</button>
                 <button id="paths-btn" class="secondary-btn" data-i18n="showPaths">Camins</button>
                 <button id="new-game-btn" class="secondary-btn" data-i18n="newGame">Nova Partida</button>
                 <button id="back-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>

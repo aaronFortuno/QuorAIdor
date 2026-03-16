@@ -337,7 +337,41 @@ const QuoridorAI = (() => {
     }
 
     /* ===================================================================
-     *  MINIMAX WITH ALPHA-BETA PRUNING
+     *  TRANSPOSITION TABLE
+     *  Stores evaluated positions to avoid redundant search.
+     *  Flag: 0 = EXACT, 1 = LOWER_BOUND (alpha cutoff), 2 = UPPER_BOUND (beta cutoff)
+     * =================================================================== */
+
+    const TT_EXACT = 0;
+    const TT_LOWER = 1;
+    const TT_UPPER = 2;
+    const TT_MAX_SIZE = 100000;
+    let ttable = new Map();
+
+    function ttLookup(hash, depth, alpha, beta) {
+        const entry = ttable.get(hash);
+        if (!entry || entry.depth < depth) return null;
+
+        if (entry.flag === TT_EXACT) return entry;
+        if (entry.flag === TT_LOWER && entry.score >= beta) return entry;
+        if (entry.flag === TT_UPPER && entry.score <= alpha) return entry;
+        return null;
+    }
+
+    function ttStore(hash, depth, score, flag, bestAction) {
+        if (ttable.size >= TT_MAX_SIZE) {
+            // Evict oldest entries (simple strategy: clear half)
+            const entries = Array.from(ttable.entries());
+            ttable.clear();
+            for (let i = entries.length >> 1; i < entries.length; i++) {
+                ttable.set(entries[i][0], entries[i][1]);
+            }
+        }
+        ttable.set(hash, { depth, score, flag, bestAction });
+    }
+
+    /* ===================================================================
+     *  MINIMAX WITH ALPHA-BETA PRUNING + TRANSPOSITION TABLE
      * =================================================================== */
 
     function minimax(state, depth, alpha, beta, maximizing, w) {
@@ -347,10 +381,32 @@ const QuoridorAI = (() => {
             return { score: evaluate(state, w), action: null };
         }
 
+        // TT probe
+        const hash = state.hash || 0;
+        const ttHit = ttLookup(hash, depth, alpha, beta);
+        if (ttHit) {
+            return { score: ttHit.score, action: ttHit.bestAction };
+        }
+
         const actions = getPrioritizedActions(state, w);
         if (actions.length === 0) return { score: evaluate(state, w), action: null };
 
+        // If TT has a best move from a shallower search, try it first
+        const ttShallow = ttable.get(hash);
+        if (ttShallow && ttShallow.bestAction) {
+            const idx = actions.findIndex(a =>
+                a.type === ttShallow.bestAction.type &&
+                a.row === ttShallow.bestAction.row &&
+                a.col === ttShallow.bestAction.col &&
+                (!a.orientation || a.orientation === ttShallow.bestAction.orientation));
+            if (idx > 0) {
+                const best = actions.splice(idx, 1)[0];
+                actions.unshift(best);
+            }
+        }
+
         let bestAction = actions[0];
+        const origAlpha = alpha;
 
         if (maximizing) {
             let maxScore = -Infinity;
@@ -364,9 +420,15 @@ const QuoridorAI = (() => {
                 alpha = Math.max(alpha, maxScore);
                 if (beta <= alpha) break;
             }
+            // TT store
+            let flag = TT_EXACT;
+            if (maxScore <= origAlpha) flag = TT_UPPER;
+            else if (maxScore >= beta) flag = TT_LOWER;
+            ttStore(hash, depth, maxScore, flag, bestAction);
             return { score: maxScore, action: bestAction };
         } else {
             let minScore = Infinity;
+            const origBeta = beta;
             for (const action of actions) {
                 const newState = QuoridorGame.applyMove(state, action);
                 const result = minimax(newState, depth - 1, alpha, beta, true, w);
@@ -377,6 +439,10 @@ const QuoridorAI = (() => {
                 beta = Math.min(beta, minScore);
                 if (beta <= alpha) break;
             }
+            let flag = TT_EXACT;
+            if (minScore >= origBeta) flag = TT_LOWER;
+            else if (minScore <= alpha) flag = TT_UPPER;
+            ttStore(hash, depth, minScore, flag, bestAction);
             return { score: minScore, action: bestAction };
         }
     }
@@ -399,6 +465,7 @@ const QuoridorAI = (() => {
         }
 
         nodesSearched = 0;
+        ttable.clear(); // Fresh TT for each top-level search
         const w = customWeights || activeWeights;
         const maximizing = state.currentPlayer === 0;
         const result = minimax(state, searchDepth, -Infinity, Infinity, maximizing, w);

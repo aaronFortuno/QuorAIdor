@@ -131,6 +131,43 @@ const QuoridorGame = (() => {
     }
 
     /* ==================================================================
+     *  ZOBRIST HASHING
+     *  Random bitstrings XORed together for incremental position hashing.
+     *  Uses two 32-bit ints (hi/lo) since JS lacks 64-bit integers.
+     * ================================================================== */
+
+    // PRNG for deterministic random numbers (xorshift32)
+    let _zSeed = 0xDEADBEEF;
+    function _zRand() {
+        _zSeed ^= _zSeed << 13;
+        _zSeed ^= _zSeed >> 17;
+        _zSeed ^= _zSeed << 5;
+        return _zSeed >>> 0;
+    }
+
+    // Zobrist tables
+    const Z_PLAYER_POS = [
+        Array.from({ length: SIZE * SIZE }, () => _zRand()), // P1 positions (81 values)
+        Array.from({ length: SIZE * SIZE }, () => _zRand())  // P2 positions
+    ];
+    const Z_WALL = Array.from({ length: SIZE * SIZE * 2 }, () => _zRand()); // 128 wall slots + extra
+    const Z_SIDE = _zRand(); // side to move
+
+    function computeHash(state) {
+        let h = 0;
+        const p1 = state.players[0];
+        const p2 = state.players[1];
+        h ^= Z_PLAYER_POS[0][p1.row * SIZE + p1.col];
+        h ^= Z_PLAYER_POS[1][p2.row * SIZE + p2.col];
+        for (const w of state.walls) {
+            const wIdx = (w.row * SIZE + w.col) * 2 + (w.orientation === 'h' ? 0 : 1);
+            h ^= Z_WALL[wIdx];
+        }
+        if (state.currentPlayer === 1) h ^= Z_SIDE;
+        return h >>> 0;
+    }
+
+    /* ==================================================================
      *  STATE MANAGEMENT
      * ================================================================== */
 
@@ -146,8 +183,10 @@ const QuoridorGame = (() => {
             wallSet: new Set(),
             moveHistory: [],
             gameOver: false,
-            winner: -1
+            winner: -1,
+            hash: 0
         };
+        state.hash = computeHash(state);
         return state;
     }
 
@@ -160,7 +199,8 @@ const QuoridorGame = (() => {
             wallSet: new Set(state.wallSet),
             moveHistory: state.moveHistory.slice(),
             gameOver: state.gameOver,
-            winner: state.winner
+            winner: state.winner,
+            hash: state.hash || 0
         };
     }
 
@@ -377,31 +417,42 @@ const QuoridorGame = (() => {
 
     function applyMove(state, move) {
         const newState = cloneState(state);
-        const p = newState.players[newState.currentPlayer];
+        const cp = newState.currentPlayer;
+        const p = newState.players[cp];
+        let h = newState.hash;
 
         if (move.type === 'move') {
-            const notation = 'P' + (newState.currentPlayer + 1) + ' ' +
+            const notation = 'P' + (cp + 1) + ' ' +
                 String.fromCharCode(97 + move.col) + (move.row + 1);
+            // Hash: remove old position, add new position
+            h ^= Z_PLAYER_POS[cp][p.row * SIZE + p.col];
             p.row = move.row;
             p.col = move.col;
+            h ^= Z_PLAYER_POS[cp][p.row * SIZE + p.col];
             newState.moveHistory.push(notation);
 
             if (p.row === p.goalRow) {
                 newState.gameOver = true;
-                newState.winner = newState.currentPlayer;
+                newState.winner = cp;
             }
         } else if (move.type === 'wall') {
-            const notation = 'P' + (newState.currentPlayer + 1) + ' ' +
+            const notation = 'P' + (cp + 1) + ' ' +
                 String.fromCharCode(97 + move.col) + (move.row + 1) +
                 (move.orientation === 'h' ? 'h' : 'v');
             newState.walls.push({ row: move.row, col: move.col, orientation: move.orientation });
             addWallEdges(newState.edges, move.row, move.col, move.orientation);
             newState.wallSet.add(wallKey(move.row, move.col, move.orientation));
+            // Hash: add wall
+            const wIdx = (move.row * SIZE + move.col) * 2 + (move.orientation === 'h' ? 0 : 1);
+            h ^= Z_WALL[wIdx];
             p.walls--;
             newState.moveHistory.push(notation);
         }
 
-        newState.currentPlayer = 1 - newState.currentPlayer;
+        // Hash: flip side to move
+        h ^= Z_SIDE;
+        newState.currentPlayer = 1 - cp;
+        newState.hash = h >>> 0;
         return newState;
     }
 

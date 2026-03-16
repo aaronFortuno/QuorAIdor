@@ -87,7 +87,10 @@ const I18n = (() => {
             confirmExitMsg: 'Vols sortir de la partida?',
             saveAndExit: 'Guardar i sortir',
             discardAndExit: 'Descartar i sortir',
-            cancel: 'Cancel·lar'
+            cancel: 'Cancel·lar',
+            tabInfo: 'Info',
+            tabMoves: 'Moviments',
+            tabAnalysis: 'Anàlisi'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -176,7 +179,10 @@ const I18n = (() => {
             confirmExitMsg: '¿Quieres salir de la partida?',
             saveAndExit: 'Guardar y salir',
             discardAndExit: 'Descartar y salir',
-            cancel: 'Cancelar'
+            cancel: 'Cancelar',
+            tabInfo: 'Info',
+            tabMoves: 'Movimientos',
+            tabAnalysis: 'Análisis'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -265,7 +271,10 @@ const I18n = (() => {
             confirmExitMsg: 'Do you want to leave the game?',
             saveAndExit: 'Save & Exit',
             discardAndExit: 'Discard & Exit',
-            cancel: 'Cancel'
+            cancel: 'Cancel',
+            tabInfo: 'Info',
+            tabMoves: 'Moves',
+            tabAnalysis: 'Analysis'
         }
     };
 
@@ -277,6 +286,7 @@ const I18n = (() => {
     }
 
     let currentLang = localStorage.getItem('qouraid-lang') || detectBrowserLang();
+    document.documentElement.lang = currentLang;
 
     function t(key, params) {
         let str = (translations[currentLang] && translations[currentLang][key]) || translations.en[key] || key;
@@ -292,6 +302,7 @@ const I18n = (() => {
         if (translations[lang]) {
             currentLang = lang;
             localStorage.setItem('qouraid-lang', lang);
+            document.documentElement.lang = lang;
             applyTranslations();
         }
     }

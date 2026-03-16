@@ -87,9 +87,15 @@
             if (!data.stateHistory || data.stateHistory.length === 0) return false;
 
             stateHistory = data.stateHistory.map(s => {
-                // Rebuild edges and wallSet from walls
-                const st = QuoridorGame.cloneState(s);
-                return st;
+                // Rebuild edges and wallSet from walls (lost in JSON serialization)
+                s.edges = QuoridorGame.buildEdgesFromWalls(s.walls || []);
+                s.wallSet = new Set();
+                if (s.walls) {
+                    for (const w of s.walls) {
+                        s.wallSet.add((w.row << 8) | (w.col << 4) | (w.orientation === 'h' ? 0 : 1));
+                    }
+                }
+                return QuoridorGame.cloneState(s);
             });
             state = QuoridorGame.cloneState(stateHistory[stateHistory.length - 1]);
             humanPlayer = data.humanPlayer;
@@ -930,7 +936,15 @@
         if (hvhMode) return; // No eval bar in HvH mode
         const analysis = QuoridorAI.getAnalysis(state);
         const p2Pct = Math.max(2, Math.min(98, analysis.winProbP2 * 100));
-        $('eval-fill-p2').style.height = p2Pct + '%';
+        const isMobile = window.innerWidth <= 600;
+        const fillEl = $('eval-fill-p2');
+        if (isMobile) {
+            fillEl.style.width = p2Pct + '%';
+            fillEl.style.height = '100%';
+        } else {
+            fillEl.style.height = p2Pct + '%';
+            fillEl.style.width = '';
+        }
 
         const evalScore = analysis.evaluation.toFixed(1);
         const sign = analysis.evaluation > 0 ? '+' : '';
@@ -971,14 +985,19 @@
         const targetIdx = Math.max(0, Math.min(moveIndex, stateHistory.length - 1));
         browsingHistory = targetIdx < stateHistory.length - 1;
         browseIndex = targetIdx;
-        const browseState = QuoridorGame.cloneState(stateHistory[targetIdx]);
-        // Temporarily show the browse state
-        const realState = state;
-        state = browseState;
-        updateMoveHistory();
-        draw();
-        state = realState;
-        if (!browsingHistory) {
+
+        if (browsingHistory) {
+            // Draw browse state without mutating the real state
+            const browseState = QuoridorGame.cloneState(stateHistory[targetIdx]);
+            const realState = state;
+            try {
+                state = browseState;
+                updateMoveHistory();
+                draw();
+            } finally {
+                state = realState;
+            }
+        } else {
             browseIndex = -1;
             updateValidMoves();
             updateUI();
@@ -1190,14 +1209,10 @@
         const tabBar = document.createElement('div');
         tabBar.className = 'mobile-tabs';
         const tabs = [
-            { id: 'tab-info', label: 'Info', target: 'info-section' },
-            { id: 'tab-moves', label: 'Moves', target: 'move-list' },
-            { id: 'tab-analysis', label: 'Analysis', target: 'analysis-info' }
+            { id: 'tab-info', label: I18n.t('tabInfo'), target: 'info-section' },
+            { id: 'tab-moves', label: I18n.t('tabMoves'), target: 'move-list' },
+            { id: 'tab-analysis', label: I18n.t('tabAnalysis'), target: 'analysis-info' }
         ];
-
-        // Move info section to right panel for mobile
-        const infoSection = $('info-section');
-        const infoClone = infoSection;
 
         tabs.forEach((t, i) => {
             const btn = document.createElement('button');

@@ -26,13 +26,21 @@
         <div id="menu-screen" class="screen active">
             <h2 data-i18n="newGame">Nova Partida</h2>
             <div class="option-group">
+                <label data-i18n="selectMode">Mode de joc:</label>
+                <div class="toggle-group">
+                    <button class="toggle-btn selected" data-mode-select="vsAI" data-i18n="vsAI">vs IA</button>
+                    <button class="toggle-btn" data-mode-select="hvh" data-i18n="hvh">vs Humà</button>
+                    <button class="toggle-btn" data-mode-select="aiVsAi" data-i18n="watchAI">Veure IA vs IA</button>
+                </div>
+            </div>
+            <div class="option-group" id="color-option">
                 <label data-i18n="playAs">Juga com a:</label>
                 <div class="toggle-group">
                     <button class="toggle-btn selected" data-color="1" data-i18n="player1Top">Jugador 1 (Dalt)</button>
                     <button class="toggle-btn" data-color="2" data-i18n="player2Bottom">Jugador 2 (Baix)</button>
                 </div>
             </div>
-            <div class="option-group">
+            <div class="option-group" id="difficulty-option">
                 <label data-i18n="aiDifficulty">Dificultat IA:</label>
                 <div class="toggle-group">
                     <button class="toggle-btn" data-depth="1" data-i18n="easy" title="Depth 1 — Instant moves">Fàcil</button>
@@ -42,7 +50,6 @@
                 </div>
             </div>
             <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
-            <button id="watch-ai-btn" class="secondary-btn" data-i18n="watchAI" style="margin-top: 12px;">Veure IA vs IA</button>
             <div style="margin-top: 12px;">
                 <a href="training.html" class="secondary-btn" data-i18n="trainingArena" style="text-decoration:none; display:inline-block;">Training Arena</a>
             </div>

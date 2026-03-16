@@ -11,6 +11,8 @@
     let state = null;
     let humanPlayer = 0;
     let aiPlayer = 1;
+    let gameMode = 'vsAI'; // 'vsAI', 'hvh', 'aiVsAi'
+    let hvhMode = false;
     let actionMode = 'move';
     let hoverCell = null;
     let hoverWall = null;
@@ -95,6 +97,31 @@
         $(id).classList.add('active');
     }
 
+    // Mode selector logic
+    function updateMenuForMode(mode) {
+        gameMode = mode;
+        const colorOpt = $('color-option');
+        const diffOpt = $('difficulty-option');
+        if (mode === 'hvh') {
+            colorOpt.style.display = 'none';
+            diffOpt.style.display = 'none';
+        } else if (mode === 'aiVsAi') {
+            colorOpt.style.display = 'none';
+            diffOpt.style.display = '';
+        } else {
+            colorOpt.style.display = '';
+            diffOpt.style.display = '';
+        }
+    }
+
+    document.querySelectorAll('[data-mode-select]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('[data-mode-select]').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            updateMenuForMode(btn.dataset.modeSelect);
+        });
+    });
+
     document.querySelectorAll('[data-color]').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('selected'));
@@ -119,23 +146,41 @@
         });
     });
 
-    $('start-btn').addEventListener('click', startNewGame);
-    $('new-game-btn').addEventListener('click', startNewGame);
+    $('start-btn').addEventListener('click', () => {
+        if (gameMode === 'aiVsAi') {
+            startAIvsAI();
+        } else if (gameMode === 'hvh') {
+            startHvHGame();
+        } else {
+            startNewGame();
+        }
+    });
+    $('new-game-btn').addEventListener('click', () => {
+        if (hvhMode) startHvHGame();
+        else if (aiVsAiMode) startAIvsAI();
+        else startNewGame();
+    });
     $('back-menu-btn').addEventListener('click', () => {
         aiVsAiRunning = false;
         aiVsAiMode = false;
+        hvhMode = false;
         showScreen('menu-screen');
     });
-    $('rematch-btn').addEventListener('click', startNewGame);
+    $('rematch-btn').addEventListener('click', () => {
+        if (hvhMode) startHvHGame();
+        else if (aiVsAiMode) startAIvsAI();
+        else startNewGame();
+    });
     $('modal-menu-btn').addEventListener('click', () => {
         $('game-over-modal').classList.add('hidden');
         showScreen('menu-screen');
     });
 
     $('undo-btn').addEventListener('click', () => {
-        if (stateHistory.length >= 2 && !aiThinking && !aiVsAiMode) {
-            stateHistory.pop();
-            stateHistory.pop();
+        if (aiThinking || aiVsAiMode) return;
+        const undoCount = hvhMode ? 1 : 2;
+        if (stateHistory.length > undoCount) {
+            for (let i = 0; i < undoCount; i++) stateHistory.pop();
             state = QuoridorGame.cloneState(stateHistory[stateHistory.length - 1]);
             state.moveHistory = state.moveHistory || [];
             updateValidMoves();
@@ -147,7 +192,7 @@
     $('resign-btn').addEventListener('click', () => {
         if (!state || state.gameOver || aiThinking || aiVsAiMode) return;
         state.gameOver = true;
-        state.winner = aiPlayer;
+        state.winner = hvhMode ? (1 - state.currentPlayer) : aiPlayer;
         showGameOver(true);
     });
 
@@ -162,8 +207,6 @@
     // AI vs AI mode
     let aiVsAiMode = false;
     let aiVsAiRunning = false;
-
-    $('watch-ai-btn').addEventListener('click', startAIvsAI);
 
     function startAIvsAI() {
         $('game-over-modal').classList.add('hidden');
@@ -258,6 +301,7 @@
         // Stop any running AI vs AI game
         aiVsAiRunning = false;
         aiVsAiMode = false;
+        hvhMode = false;
 
         $('game-over-modal').classList.add('hidden');
         const colorBtn = document.querySelector('[data-color].selected');
@@ -293,6 +337,11 @@
         $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + p1Label + ')';
         $('p2-info').querySelector('.player-label').textContent = I18n.t('player2') + ' (' + p2Label + ')';
 
+        // Show analysis/eval panels (hidden in HvH mode)
+        $('analysis-info').style.display = '';
+        $('eval-bar-vertical').style.display = '';
+        $('eval-detail').style.display = '';
+
         // Show trained badge if using trained weights
         updateTrainedBadge();
 
@@ -304,6 +353,40 @@
         if (state.currentPlayer === aiPlayer) {
             doAIMove();
         }
+    }
+
+    function startHvHGame() {
+        aiVsAiRunning = false;
+        aiVsAiMode = false;
+        hvhMode = true;
+
+        $('game-over-modal').classList.add('hidden');
+        humanPlayer = 'both';
+        aiPlayer = -1;
+
+        state = QuoridorGame.createState();
+        stateHistory = [QuoridorGame.cloneState(state)];
+        positionCounts.clear();
+        lastMove = null;
+        actionMode = 'move';
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+        document.querySelector('.mode-btn[data-mode="move"]').classList.add('selected');
+
+        $('p1-info').querySelector('.player-label').textContent = I18n.t('player1');
+        $('p2-info').querySelector('.player-label').textContent = I18n.t('player2');
+
+        // Hide analysis panel in HvH mode
+        $('analysis-info').style.display = 'none';
+        $('eval-bar-vertical').style.display = 'none';
+        $('eval-detail').style.display = 'none';
+
+        usingTrainedWeights = false;
+        updateTrainedBadge();
+
+        showScreen('game-screen');
+        updateValidMoves();
+        updateUI();
+        draw();
     }
 
     function updateTrainedBadge() {
@@ -325,10 +408,11 @@
 
     function updateValidMoves() {
         if (!state || state.gameOver) { validMoves = []; return; }
-        if (state.currentPlayer !== humanPlayer) { validMoves = []; return; }
+        const isHumanTurn = hvhMode || (humanPlayer === state.currentPlayer);
+        if (!isHumanTurn) { validMoves = []; return; }
 
         if (actionMode === 'move') {
-            validMoves = QuoridorGame.getValidMoves(state, humanPlayer);
+            validMoves = QuoridorGame.getValidMoves(state, state.currentPlayer);
         } else {
             validMoves = [];
         }
@@ -409,7 +493,7 @@
 
     function handleBoardInput(clientX, clientY) {
         if (aiThinking || !state || state.gameOver) return;
-        if (state.currentPlayer !== humanPlayer) return;
+        if (!hvhMode && state.currentPlayer !== humanPlayer) return;
 
         const rect = canvas.getBoundingClientRect();
         const x = (clientX - rect.left) * (canvas.width / rect.width);
@@ -518,7 +602,7 @@
             return;
         }
 
-        if (state.currentPlayer === aiPlayer) {
+        if (!hvhMode && state.currentPlayer === aiPlayer) {
             doAIMove();
         }
     }
@@ -569,11 +653,16 @@
     function showGameOver(resigned) {
         const winner = state.winner;
         const isDraw = winner === -1;
-        const isHumanWin = !aiVsAiMode && winner === humanPlayer;
+        const isHumanWin = !aiVsAiMode && !hvhMode && winner === humanPlayer;
 
         if (isDraw) {
             $('game-over-title').textContent = I18n.t('draw');
             $('game-over-msg').textContent = I18n.t('drawReason');
+        } else if (hvhMode) {
+            $('game-over-title').textContent = winner === 0 ? I18n.t('p1Wins') : I18n.t('p2Wins');
+            $('game-over-msg').textContent = resigned
+                ? I18n.t('youResigned')
+                : (winner === 0 ? I18n.t('p1ReachedGoal') : I18n.t('p2ReachedGoal'));
         } else if (aiVsAiMode) {
             $('game-over-title').textContent = I18n.t('gameOver');
             $('game-over-msg').textContent = (winner === 0 ? I18n.t('player1') : I18n.t('player2')) + ' wins!';
@@ -603,6 +692,8 @@
         if (!aiThinking) {
             if (state.gameOver) {
                 $('turn-indicator').textContent = I18n.t('gameOver');
+            } else if (hvhMode) {
+                $('turn-indicator').textContent = state.currentPlayer === 0 ? I18n.t('turnP1') : I18n.t('turnP2');
             } else if (state.currentPlayer === humanPlayer) {
                 $('turn-indicator').textContent = I18n.t('yourTurn');
             } else {
@@ -610,10 +701,12 @@
             }
         }
 
-        const p1Label = humanPlayer === 0 ? I18n.t('you') : I18n.t('ai');
-        const p2Label = humanPlayer === 1 ? I18n.t('you') : I18n.t('ai');
-        $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + p1Label + ')';
-        $('p2-info').querySelector('.player-label').textContent = I18n.t('player2') + ' (' + p2Label + ')';
+        if (!hvhMode && !aiVsAiMode) {
+            const p1Label = humanPlayer === 0 ? I18n.t('you') : I18n.t('ai');
+            const p2Label = humanPlayer === 1 ? I18n.t('you') : I18n.t('ai');
+            $('p1-info').querySelector('.player-label').textContent = I18n.t('player1') + ' (' + p1Label + ')';
+            $('p2-info').querySelector('.player-label').textContent = I18n.t('player2') + ' (' + p2Label + ')';
+        }
 
         updateEvalBar();
         updateMoveHistory();
@@ -621,6 +714,7 @@
     }
 
     function updateEvalBar() {
+        if (hvhMode) return; // No eval bar in HvH mode
         const analysis = QuoridorAI.getAnalysis(state);
         const p2Pct = Math.max(2, Math.min(98, analysis.winProbP2 * 100));
         $('eval-fill-p2').style.height = p2Pct + '%';
@@ -654,6 +748,8 @@
     }
 
     function updateAnalysis() {
+        if (hvhMode) return; // No AI analysis in HvH mode
+
         if (state.gameOver) {
             $('best-move-hint').textContent = '';
             $('position-summary').textContent = I18n.t('gameFinished');
@@ -690,8 +786,8 @@
                     color = lastMove.player === 0 ? 'rgba(79, 195, 247, 0.3)' : 'rgba(233, 69, 96, 0.3)';
                 }
 
-                if (actionMode === 'move' && state && !state.gameOver &&
-                    state.currentPlayer === humanPlayer) {
+                const isHumanTurnDraw = state && !state.gameOver && (hvhMode || state.currentPlayer === humanPlayer);
+                if (actionMode === 'move' && isHumanTurnDraw) {
                     if (validMoves.some(m => m.row === r && m.col === c)) {
                         color = COLORS.cellValid;
                     }
@@ -744,7 +840,7 @@
             }
         }
 
-        if (hoverWall && state && !state.gameOver && state.currentPlayer === humanPlayer) {
+        if (hoverWall && state && !state.gameOver && (hvhMode || state.currentPlayer === humanPlayer)) {
             const valid = QuoridorGame.isValidWallPlacement(
                 state, hoverWall.row, hoverWall.col, hoverWall.orientation);
             const color = valid ? COLORS.wallPreview : COLORS.wallInvalid;

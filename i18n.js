@@ -56,7 +56,16 @@ const I18n = (() => {
             showPaths: 'Camins',
             watchAI: 'Veure IA vs IA',
             resign: 'Rendir-se',
-            youResigned: 'T\'has rendit.'
+            youResigned: 'T\'has rendit.',
+            hvh: 'vs Humà',
+            vsAI: 'vs IA',
+            selectMode: 'Mode de joc:',
+            turnP1: 'Torn del Jugador 1',
+            turnP2: 'Torn del Jugador 2',
+            p1Wins: 'Jugador 1 Guanya!',
+            p2Wins: 'Jugador 2 Guanya!',
+            p1ReachedGoal: 'El Jugador 1 ha arribat a la meta!',
+            p2ReachedGoal: 'El Jugador 2 ha arribat a la meta!'
         },
         es: {
             subtitle: 'Quoridor contra IA',
@@ -114,7 +123,16 @@ const I18n = (() => {
             showPaths: 'Caminos',
             watchAI: 'Ver IA vs IA',
             resign: 'Rendirse',
-            youResigned: 'Te has rendido.'
+            youResigned: 'Te has rendido.',
+            hvh: 'vs Humano',
+            vsAI: 'vs IA',
+            selectMode: 'Modo de juego:',
+            turnP1: 'Turno del Jugador 1',
+            turnP2: 'Turno del Jugador 2',
+            p1Wins: '¡Jugador 1 Gana!',
+            p2Wins: '¡Jugador 2 Gana!',
+            p1ReachedGoal: '¡El Jugador 1 ha llegado a la meta!',
+            p2ReachedGoal: '¡El Jugador 2 ha llegado a la meta!'
         },
         en: {
             subtitle: 'Quoridor vs AI',
@@ -172,7 +190,16 @@ const I18n = (() => {
             showPaths: 'Paths',
             watchAI: 'Watch AI vs AI',
             resign: 'Resign',
-            youResigned: 'You resigned.'
+            youResigned: 'You resigned.',
+            hvh: 'vs Human',
+            vsAI: 'vs AI',
+            selectMode: 'Game mode:',
+            turnP1: 'Player 1\'s turn',
+            turnP2: 'Player 2\'s turn',
+            p1Wins: 'Player 1 Wins!',
+            p2Wins: 'Player 2 Wins!',
+            p1ReachedGoal: 'Player 1 reached the goal!',
+            p2ReachedGoal: 'Player 2 reached the goal!'
         }
     };
 

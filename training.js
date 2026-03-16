@@ -1069,6 +1069,7 @@
         if (config.maxMoves < 10) errors.push('Max moves must be at least 10');
         if (config.mutationRate <= 0 || config.mutationRate > 1) errors.push('Mutation rate must be between 0 and 1');
         if (config.crossoverRate < 0 || config.crossoverRate > 1) errors.push('Crossover rate must be between 0 and 1');
+        if (config.mutationStrength <= 0) errors.push('Mutation strength must be greater than 0');
         return errors;
     }
 

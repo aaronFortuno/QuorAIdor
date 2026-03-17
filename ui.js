@@ -1389,7 +1389,6 @@
         const tabBar = document.createElement('div');
         tabBar.className = 'mobile-tabs';
         const tabs = [
-            { id: 'tab-info', label: I18n.t('tabInfo'), target: 'info-section' },
             { id: 'tab-moves', label: I18n.t('tabMoves'), target: 'move-list' },
             { id: 'tab-analysis', label: I18n.t('tabAnalysis'), target: 'analysis-info' }
         ];

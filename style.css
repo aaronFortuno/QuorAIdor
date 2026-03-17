@@ -310,21 +310,27 @@ h2 {
 
 #game-layout {
     display: flex;
-    gap: var(--sp-3);
+    gap: var(--sp-4);
     justify-content: center;
     align-items: flex-start;
 }
 
-#left-panel {
-    width: 200px;
-    flex-shrink: 0;
+#board-column {
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: var(--sp-2);
+    flex-shrink: 0;
+}
+
+#board-with-eval {
+    display: flex;
+    gap: var(--sp-2);
+    align-items: stretch;
 }
 
 #right-panel {
-    width: 220px;
+    width: 240px;
     flex-shrink: 0;
 }
 
@@ -337,6 +343,25 @@ h2 {
     border-radius: var(--radius-sm);
     transition: opacity 0.2s ease;
     box-shadow: var(--shadow-lg);
+    display: block;
+}
+
+/* Player bars above/below the board */
+.player-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--radius);
+    background: var(--panel-bg);
+    box-shadow: var(--shadow);
+    width: 100%;
+    max-width: 580px;
+    transition: background 0.15s;
+}
+
+.player-bar.active-player {
+    background: var(--active-player-bg);
 }
 
 .panel-title {
@@ -355,6 +380,7 @@ h2 {
     flex-direction: column;
     align-items: center;
     flex-shrink: 0;
+    gap: var(--sp-1);
 }
 
 #eval-score {
@@ -415,6 +441,7 @@ h2 {
     box-shadow: var(--shadow);
 }
 
+/* Legacy .player-info kept for compat with ui.js classList.toggle */
 .player-info {
     display: flex;
     align-items: center;
@@ -828,16 +855,10 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
         flex-direction: column;
         align-items: center;
     }
-    #left-panel, #right-panel {
+    #right-panel {
         width: 100%;
-        max-width: 560px;
+        max-width: 580px;
     }
-    #left-panel {
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: var(--sp-2);
-    }
-    #left-panel > * { flex: 1; min-width: 200px; }
 }
 
 /* Mobile */
@@ -858,14 +879,14 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
         gap: var(--sp-2);
     }
 
-    #left-panel {
+    #board-column {
         width: 100%;
-        max-width: none;
-        order: 1;
-        flex-direction: row;
+    }
+    #board-with-eval {
+        width: 100%;
+        justify-content: center;
     }
     #board-area {
-        order: 2;
         width: 100%;
         display: flex;
         justify-content: center;

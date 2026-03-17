@@ -112,43 +112,54 @@
 
         <div id="game-screen" class="screen">
             <div id="game-layout">
-                <div id="left-panel">
-                    <div id="eval-detail"></div>
-                    <div id="info-section">
-                        <div class="player-info" id="p1-info">
-                            <span class="player-dot p1-dot"></span>
-                            <span class="player-label">Jugador 1</span>
-                            <span class="wall-count" id="p1-walls">10 murs</span>
+                <!-- Board column: player bars + eval + board -->
+                <div id="board-column">
+                    <div class="player-bar" id="p2-info">
+                        <span class="player-dot p2-dot"></span>
+                        <span class="player-label">Jugador 2 (IA)</span>
+                        <span class="wall-count" id="p2-walls">10 murs</span>
+                    </div>
+
+                    <div id="board-with-eval">
+                        <div id="eval-bar-vertical">
+                            <span class="eval-label eval-label-top">P2</span>
+                            <div id="eval-bar">
+                                <div id="eval-fill-p2"></div>
+                                <div id="eval-fill-p1"></div>
+                            </div>
+                            <span class="eval-label eval-label-bottom">P1</span>
+                            <div id="eval-score">0.0</div>
                         </div>
-                        <div class="player-info" id="p2-info">
-                            <span class="player-dot p2-dot"></span>
-                            <span class="player-label">Jugador 2 (IA)</span>
-                            <span class="wall-count" id="p2-walls">10 murs</span>
+                        <div id="board-area">
+                            <canvas id="board-canvas" role="img" aria-label="Quoridor game board" tabindex="0"></canvas>
+                            <div id="game-announce" aria-live="polite" class="sr-only"></div>
                         </div>
-                        <div id="turn-indicator" data-i18n="yourTurn">El teu torn</div>
-                        <div id="action-mode">
-                            <button class="mode-btn selected" data-mode="move" data-i18n="move">Moure</button>
-                            <button class="mode-btn" data-mode="wall-h" data-i18n="wallH">Mur ─</button>
-                            <button class="mode-btn" data-mode="wall-v" data-i18n="wallV">Mur │</button>
-                        </div>
+                    </div>
+
+                    <div class="player-bar" id="p1-info">
+                        <span class="player-dot p1-dot"></span>
+                        <span class="player-label">Jugador 1</span>
+                        <span class="wall-count" id="p1-walls">10 murs</span>
+                    </div>
+
+                    <div id="turn-indicator" data-i18n="yourTurn">El teu torn</div>
+
+                    <div id="action-mode">
+                        <button class="mode-btn selected" data-mode="move" data-i18n="move">Moure</button>
+                        <button class="mode-btn" data-mode="wall-h" data-i18n="wallH">Mur ─</button>
+                        <button class="mode-btn" data-mode="wall-v" data-i18n="wallV">Mur │</button>
+                    </div>
+
+                    <div id="game-buttons">
+                        <button id="undo-btn" class="secondary-btn" data-i18n="undo">Desfer</button>
+                        <button id="resign-btn" class="danger-btn" data-i18n="resign">Rendir-se</button>
+                        <button id="paths-btn" class="secondary-btn" data-i18n="showPaths">Camins</button>
+                        <button id="new-game-btn" class="secondary-btn" data-i18n="newGame">Nova Partida</button>
+                        <button id="back-menu-btn" class="secondary-btn" data-i18n="menu">Menu</button>
                     </div>
                 </div>
 
-                <div id="eval-bar-vertical">
-                    <div id="eval-score">0.0</div>
-                    <span class="eval-label eval-label-top">P2</span>
-                    <div id="eval-bar">
-                        <div id="eval-fill-p2"></div>
-                        <div id="eval-fill-p1"></div>
-                    </div>
-                    <span class="eval-label eval-label-bottom">P1</span>
-                </div>
-
-                <div id="board-area">
-                    <canvas id="board-canvas" role="img" aria-label="Quoridor game board" tabindex="0"></canvas>
-                    <div id="game-announce" aria-live="polite" class="sr-only"></div>
-                </div>
-
+                <!-- Side panel: moves, analysis, chat -->
                 <div id="right-panel">
                     <div class="panel-title" data-i18n="moveHistory">Historial de Moviments</div>
                     <div id="move-list"></div>
@@ -159,6 +170,7 @@
                             <div id="position-summary"></div>
                         </div>
                     </div>
+                    <div id="eval-detail"></div>
                     <div id="chat-panel" class="hidden">
                         <div class="panel-title">Chat</div>
                         <div id="chat-messages"></div>
@@ -168,13 +180,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div id="game-buttons">
-                <button id="undo-btn" class="secondary-btn" data-i18n="undo">Desfer</button>
-                <button id="resign-btn" class="secondary-btn" data-i18n="resign">Rendir-se</button>
-                <button id="paths-btn" class="secondary-btn" data-i18n="showPaths">Camins</button>
-                <button id="new-game-btn" class="secondary-btn" data-i18n="newGame">Nova Partida</button>
-                <button id="back-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>
             </div>
         </div>
 

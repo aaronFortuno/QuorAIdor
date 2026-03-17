@@ -25,15 +25,15 @@ const BoardRenderer = (() => {
             bg:          style.getPropertyValue('--board-bg').trim()  || '#0d1b36',
             cell:        style.getPropertyValue('--cell-bg').trim()   || '#16213e',
             cellHover:   style.getPropertyValue('--btn-selected-bg').trim() || '#1e2a4a',
-            cellValid:   'rgba(79, 195, 247, 0.2)',
+            cellValid:   'rgba(79, 195, 247, 0.18)',
             gridLine:    style.getPropertyValue('--border').trim()    || '#0f3460',
             p1:          style.getPropertyValue('--color-p1').trim() || '#4fc3f7',
-            p2:          style.getPropertyValue('--color-p2').trim() || '#e94560',
+            p2:          style.getPropertyValue('--color-p2').trim() || '#ff6b6b',
             wallPlaced:  style.getPropertyValue('--text').trim()      || '#e0e0e0',
-            wallPreview: 'rgba(233, 69, 96, 0.5)',
-            wallInvalid: 'rgba(255, 0, 0, 0.3)',
-            pathP1:      'rgba(79, 195, 247, 0.15)',
-            pathP2:      'rgba(233, 69, 96, 0.15)',
+            wallPreview: 'rgba(255, 107, 107, 0.5)',
+            wallInvalid: 'rgba(255, 0, 0, 0.25)',
+            pathP1:      'rgba(79, 195, 247, 0.12)',
+            pathP2:      'rgba(255, 107, 107, 0.12)',
             coord:       style.getPropertyValue('--coord-color').trim() || '#444'
         };
         _colorsDirty = false;

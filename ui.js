@@ -1332,6 +1332,9 @@
     $('rules-close-btn').addEventListener('click', () => {
         closeModal('rules-modal');
     });
+    $('btn-training').addEventListener('click', () => {
+        window.location.href = 'training.html';
+    });
 
     function showRules() {
         const body = $('rules-body');

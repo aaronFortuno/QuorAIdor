@@ -935,7 +935,8 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
     }
     #board-with-eval {
         width: 100%;
-        justify-content: center;
+        flex-direction: column;
+        align-items: center;
     }
     #board-area {
         width: 100%;
@@ -949,14 +950,14 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
 
     /* Eval bar: horizontal on mobile */
     #eval-bar-vertical {
-        order: 0;
         flex-direction: row;
         align-items: center;
         gap: var(--sp-2);
         width: 100%;
+        max-width: 554px;
     }
     #eval-bar {
-        height: 16px;
+        height: 14px;
         width: 100%;
         flex-direction: row;
         border-radius: var(--radius-sm);
@@ -971,14 +972,20 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
         width: auto;
         transition: width 0.5s ease;
     }
-    #eval-score { min-width: 40px; text-align: center; }
+    #eval-score { min-width: 36px; text-align: center; font-size: 0.75rem; }
     .eval-label { font-size: 0.6rem; }
+
+    /* Player bars compact on mobile */
+    .player-bar {
+        padding: var(--sp-1) var(--sp-2);
+        max-width: none;
+        font-size: 0.85rem;
+    }
 
     /* Right panel */
     #right-panel {
         width: 100%;
         max-width: none;
-        order: 3;
     }
 
     /* Mobile tabs */
@@ -999,6 +1006,9 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
         font-weight: 500;
         text-align: center;
         min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .mobile-tab.active {
         border-color: var(--accent);
@@ -1012,13 +1022,22 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
     .primary-btn { width: 100%; }
     .lang-btn { padding: var(--sp-2); min-height: 36px; }
 
-    #game-buttons .secondary-btn {
+    #game-buttons {
+        width: 100%;
+    }
+    #game-buttons .secondary-btn,
+    #game-buttons .danger-btn {
         flex: 1;
-        min-width: 70px;
+        min-width: 60px;
         min-height: 40px;
+        font-size: 0.8rem;
+        padding: var(--sp-2) var(--sp-1);
     }
 
-    #info-section { padding: var(--sp-2); }
+    /* Turn indicator compact */
+    #turn-indicator { font-size: 0.8rem; padding: var(--sp-1); }
+
     .modal-content { padding: var(--sp-5); }
     .lobby-card { width: 100%; }
+    .menu-card { padding: var(--sp-4); }
 }

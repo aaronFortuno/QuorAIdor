@@ -30,34 +30,41 @@
         </header>
 
         <div id="menu-screen" class="screen active">
-            <h2 data-i18n="newGame">Nova Partida</h2>
-            <div class="option-group">
-                <label data-i18n="selectMode">Mode de joc:</label>
-                <div class="toggle-group">
-                    <button class="toggle-btn selected" data-mode-select="vsAI" data-i18n="vsAI">vs IA</button>
-                    <button class="toggle-btn" data-mode-select="hvh" data-i18n="hvh">vs Humà</button>
-                    <button class="toggle-btn" data-mode-select="aiVsAi" data-i18n="watchAI">Veure IA vs IA</button>
+            <!-- Play card -->
+            <div class="menu-card">
+                <h2 data-i18n="newGame">Nova Partida</h2>
+                <div class="option-group">
+                    <label data-i18n="selectMode">Mode de joc:</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn selected" data-mode-select="vsAI" data-i18n="vsAI">vs IA</button>
+                        <button class="toggle-btn" data-mode-select="hvh" data-i18n="hvh">vs Huma</button>
+                        <button class="toggle-btn" data-mode-select="aiVsAi" data-i18n="watchAI">Veure IA vs IA</button>
+                    </div>
+                </div>
+                <div class="option-group" id="color-option">
+                    <label data-i18n="playAs">Juga com a:</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn selected" data-color="1" data-i18n="player1Top">Jugador 1 (Dalt)</button>
+                        <button class="toggle-btn" data-color="2" data-i18n="player2Bottom">Jugador 2 (Baix)</button>
+                    </div>
+                    <div id="direction-hint" class="direction-hint"></div>
+                </div>
+                <div class="option-group" id="difficulty-option">
+                    <label data-i18n="aiDifficulty">Dificultat IA:</label>
+                    <div class="toggle-group">
+                        <button class="toggle-btn" data-depth="1" data-i18n="easy" title="Depth 1">Facil</button>
+                        <button class="toggle-btn selected" data-depth="2" data-i18n="medium" title="Depth 2">Mitja</button>
+                        <button class="toggle-btn" data-depth="3" data-i18n="hard" title="Depth 3">Dificil</button>
+                        <button class="toggle-btn" data-depth="4" data-i18n="expert" title="Depth 4">Expert</button>
+                    </div>
+                </div>
+                <div class="menu-primary-actions">
+                    <button id="continue-btn" class="primary-btn hidden" data-i18n="continueGame">Continuar Partida</button>
+                    <button id="start-btn" class="primary-btn" data-i18n="startGame">Comen&ccedil;ar Partida</button>
                 </div>
             </div>
-            <div class="option-group" id="color-option">
-                <label data-i18n="playAs">Juga com a:</label>
-                <div class="toggle-group">
-                    <button class="toggle-btn selected" data-color="1" data-i18n="player1Top">Jugador 1 (Dalt)</button>
-                    <button class="toggle-btn" data-color="2" data-i18n="player2Bottom">Jugador 2 (Baix)</button>
-                </div>
-                <div id="direction-hint" class="direction-hint"></div>
-            </div>
-            <div class="option-group" id="difficulty-option">
-                <label data-i18n="aiDifficulty">Dificultat IA:</label>
-                <div class="toggle-group">
-                    <button class="toggle-btn" data-depth="1" data-i18n="easy" title="Depth 1 — Instant moves">Fàcil</button>
-                    <button class="toggle-btn selected" data-depth="2" data-i18n="medium" title="Depth 2 — Fast, good for learning">Mitjà</button>
-                    <button class="toggle-btn" data-depth="3" data-i18n="hard" title="Depth 3 — Strong play, may take a moment">Difícil</button>
-                    <button class="toggle-btn" data-depth="4" data-i18n="expert" title="Depth 4 — Very strong, slower moves">Expert</button>
-                </div>
-            </div>
-            <button id="continue-btn" class="primary-btn hidden" data-i18n="continueGame">Continuar Partida</button>
-            <button id="start-btn" class="primary-btn" data-i18n="startGame">Començar Partida</button>
+
+            <!-- Secondary actions -->
             <div class="menu-secondary-actions">
                 <button id="how-to-play-btn" class="secondary-btn" data-i18n="howToPlay">Com jugar</button>
                 <button id="btn-online" class="secondary-btn" data-i18n="onlineGame">Online</button>
@@ -103,7 +110,7 @@
                 </div>
             </div>
 
-            <div style="margin-top: 16px;">
+            <div class="lobby-back">
                 <button id="btn-lobby-back" class="secondary-btn" data-i18n="menu">Menu</button>
             </div>
         </div>

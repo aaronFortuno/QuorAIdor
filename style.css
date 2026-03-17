@@ -688,13 +688,45 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
     color: var(--text-secondary);
 }
 
+/* Menu card */
+.menu-card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--sp-5);
+    max-width: 480px;
+    margin: 0 auto var(--sp-4);
+    box-shadow: var(--shadow);
+    text-align: center;
+}
+
+.menu-card h2 {
+    margin-bottom: var(--sp-4);
+}
+
+.menu-primary-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    align-items: center;
+    margin-top: var(--sp-4);
+}
+
+.menu-primary-actions .primary-btn {
+    width: 100%;
+    max-width: 300px;
+}
+
 /* Menu secondary actions row */
 .menu-secondary-actions {
     display: flex;
     gap: var(--sp-2);
     justify-content: center;
     flex-wrap: wrap;
-    margin-top: var(--sp-3);
+}
+
+.lobby-back {
+    margin-top: var(--sp-4);
 }
 
 /* Lobby screen */

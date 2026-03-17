@@ -706,6 +706,9 @@ button:focus-visible, .toggle-btn:focus-visible, .mode-btn:focus-visible {
     font-size: 0.85rem;
     color: var(--text-secondary);
 }
+.rules-close-btn {
+    margin-top: var(--sp-4);
+}
 
 /* Menu card */
 .menu-card {

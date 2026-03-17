@@ -26,47 +26,47 @@
                 </button>
             </div>
             <h1>QourAIdor</h1>
-            <p class="subtitle" data-i18n="subtitle">Quoridor contra IA</p>
+            <p class="subtitle" data-i18n="subtitle">Quoridor with AI</p>
         </header>
 
         <div id="menu-screen" class="screen active">
             <!-- Play card -->
             <div class="menu-card">
-                <h2 data-i18n="newGame">Nova Partida</h2>
+                <h2 data-i18n="newGame">New Game</h2>
                 <div class="option-group">
-                    <label data-i18n="selectMode">Mode de joc:</label>
+                    <label data-i18n="selectMode">Game mode:</label>
                     <div class="toggle-group">
                         <button class="toggle-btn selected" data-mode-select="vsAI" data-i18n="vsAI">vs IA</button>
-                        <button class="toggle-btn" data-mode-select="hvh" data-i18n="hvh">vs Huma</button>
-                        <button class="toggle-btn" data-mode-select="aiVsAi" data-i18n="watchAI">Veure IA vs IA</button>
+                        <button class="toggle-btn" data-mode-select="hvh" data-i18n="hvh">vs Human</button>
+                        <button class="toggle-btn" data-mode-select="aiVsAi" data-i18n="watchAI">Watch AI vs AI</button>
                     </div>
                 </div>
                 <div class="option-group" id="color-option">
-                    <label data-i18n="playAs">Juga com a:</label>
+                    <label data-i18n="playAs">Play as:</label>
                     <div class="toggle-group">
-                        <button class="toggle-btn selected" data-color="1" data-i18n="player1Top">Jugador 1 (Dalt)</button>
-                        <button class="toggle-btn" data-color="2" data-i18n="player2Bottom">Jugador 2 (Baix)</button>
+                        <button class="toggle-btn selected" data-color="1" data-i18n="player1Top">Player 1 (Top)</button>
+                        <button class="toggle-btn" data-color="2" data-i18n="player2Bottom">Player 2 (Bottom)</button>
                     </div>
                     <div id="direction-hint" class="direction-hint"></div>
                 </div>
                 <div class="option-group" id="difficulty-option">
-                    <label data-i18n="aiDifficulty">Dificultat IA:</label>
+                    <label data-i18n="aiDifficulty">AI Difficulty:</label>
                     <div class="toggle-group">
-                        <button class="toggle-btn" data-depth="1" data-i18n="easy" title="Depth 1">Facil</button>
-                        <button class="toggle-btn selected" data-depth="2" data-i18n="medium" title="Depth 2">Mitja</button>
-                        <button class="toggle-btn" data-depth="3" data-i18n="hard" title="Depth 3">Dificil</button>
+                        <button class="toggle-btn" data-depth="1" data-i18n="easy" title="Depth 1">Easy</button>
+                        <button class="toggle-btn selected" data-depth="2" data-i18n="medium" title="Depth 2">Medium</button>
+                        <button class="toggle-btn" data-depth="3" data-i18n="hard" title="Depth 3">Hard</button>
                         <button class="toggle-btn" data-depth="4" data-i18n="expert" title="Depth 4">Expert</button>
                     </div>
                 </div>
                 <div class="menu-primary-actions">
-                    <button id="continue-btn" class="primary-btn hidden" data-i18n="continueGame">Continuar Partida</button>
-                    <button id="start-btn" class="primary-btn" data-i18n="startGame">Comen&ccedil;ar Partida</button>
+                    <button id="continue-btn" class="primary-btn hidden" data-i18n="continueGame">Continue Game</button>
+                    <button id="start-btn" class="primary-btn" data-i18n="startGame">Start Game</button>
                 </div>
             </div>
 
             <!-- Secondary actions -->
             <div class="menu-secondary-actions">
-                <button id="how-to-play-btn" class="secondary-btn" data-i18n="howToPlay">Com jugar</button>
+                <button id="how-to-play-btn" class="secondary-btn" data-i18n="howToPlay">How to Play</button>
                 <button id="btn-online" class="secondary-btn" data-i18n="onlineGame">Online</button>
                 <button id="btn-training" class="secondary-btn" data-i18n="trainingArena">Training Arena</button>
             </div>
@@ -149,29 +149,29 @@
                         <span class="wall-count" id="p1-walls">10 murs</span>
                     </div>
 
-                    <div id="turn-indicator" data-i18n="yourTurn">El teu torn</div>
+                    <div id="turn-indicator" data-i18n="yourTurn">Your turn</div>
 
                     <div id="action-mode">
-                        <button class="mode-btn selected" data-mode="move" data-i18n="move">Moure</button>
-                        <button class="mode-btn" data-mode="wall-h" data-i18n="wallH">Mur ─</button>
-                        <button class="mode-btn" data-mode="wall-v" data-i18n="wallV">Mur │</button>
+                        <button class="mode-btn selected" data-mode="move" data-i18n="move">Move</button>
+                        <button class="mode-btn" data-mode="wall-h" data-i18n="wallH">Wall ─</button>
+                        <button class="mode-btn" data-mode="wall-v" data-i18n="wallV">Wall │</button>
                     </div>
 
                     <div id="game-buttons">
-                        <button id="undo-btn" class="secondary-btn" data-i18n="undo">Desfer</button>
-                        <button id="resign-btn" class="danger-btn" data-i18n="resign">Rendir-se</button>
-                        <button id="paths-btn" class="secondary-btn" data-i18n="showPaths">Camins</button>
-                        <button id="new-game-btn" class="secondary-btn" data-i18n="newGame">Nova Partida</button>
+                        <button id="undo-btn" class="secondary-btn" data-i18n="undo">Undo</button>
+                        <button id="resign-btn" class="danger-btn" data-i18n="resign">Resign</button>
+                        <button id="paths-btn" class="secondary-btn" data-i18n="showPaths">Paths</button>
+                        <button id="new-game-btn" class="secondary-btn" data-i18n="newGame">New Game</button>
                         <button id="back-menu-btn" class="secondary-btn" data-i18n="menu">Menu</button>
                     </div>
                 </div>
 
                 <!-- Side panel: moves, analysis, chat -->
                 <div id="right-panel">
-                    <div class="panel-title" data-i18n="moveHistory">Historial de Moviments</div>
+                    <div class="panel-title" data-i18n="moveHistory">Move History</div>
                     <div id="move-list"></div>
                     <div id="analysis-info">
-                        <div class="panel-title" data-i18n="analysis">Anàlisi</div>
+                        <div class="panel-title" data-i18n="analysis">Analysis</div>
                         <div id="analysis-content">
                             <div id="best-move-hint"></div>
                             <div id="position-summary"></div>
@@ -195,8 +195,8 @@
                 <h2 id="game-over-title"></h2>
                 <p id="game-over-msg"></p>
                 <div id="game-over-stats"></div>
-                <button id="rematch-btn" class="primary-btn" data-i18n="rematch">Revenja</button>
-                <button id="modal-menu-btn" class="secondary-btn" data-i18n="menu">Menú</button>
+                <button id="rematch-btn" class="primary-btn" data-i18n="rematch">Rematch</button>
+                <button id="modal-menu-btn" class="secondary-btn" data-i18n="menu">Menu</button>
             </div>
         </div>
 
@@ -216,7 +216,7 @@
             <div class="modal-content rules-content">
                 <h2 id="rules-title" data-i18n="howToPlay">How to Play</h2>
                 <div id="rules-body"></div>
-                <button id="rules-close-btn" class="primary-btn" style="margin-top: 16px;" data-i18n="close">Close</button>
+                <button id="rules-close-btn" class="primary-btn rules-close-btn" data-i18n="close">Close</button>
             </div>
         </div>
     </div>

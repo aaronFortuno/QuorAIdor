@@ -396,9 +396,29 @@
 
     $('resign-btn').addEventListener('click', () => {
         if (!state || state.gameOver || aiThinking || aiVsAiMode) return;
-        state.gameOver = true;
-        state.winner = hvhMode ? (1 - state.currentPlayer) : aiPlayer;
-        showGameOver(true);
+        const btn = $('resign-btn');
+        if (btn.dataset.confirming === 'true') {
+            // Second click: confirm resign
+            btn.dataset.confirming = '';
+            btn.textContent = I18n.t('resign');
+            btn.classList.remove('danger-btn--active');
+            state.gameOver = true;
+            state.winner = hvhMode ? (1 - state.currentPlayer) : aiPlayer;
+            showGameOver(true);
+        } else {
+            // First click: show confirmation
+            btn.dataset.confirming = 'true';
+            btn.textContent = I18n.t('confirmResign');
+            btn.classList.add('danger-btn--active');
+            // Auto-cancel after 3 seconds
+            setTimeout(() => {
+                if (btn.dataset.confirming === 'true') {
+                    btn.dataset.confirming = '';
+                    btn.textContent = I18n.t('resign');
+                    btn.classList.remove('danger-btn--active');
+                }
+            }, 3000);
+        }
     });
 
     // Toggle shortest path display
